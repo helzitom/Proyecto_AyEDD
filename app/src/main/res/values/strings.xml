@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Proyecto_AyEDD</string>
+    <!-- Datos de aplicativo-->
+    <string name="dev1">Helson Jesus Palomino Lujan</string>
+    <string name="dev2">Tu nombre aqui</string>
+    <string name="dev3">Tu nombre aqui</string>
+
+    <string name="design_phrase">Desarrollado por:</string>
+    <string name="version">version 1.0.0</string>
+
+    <!-- Inicio de sesión-->
+    <string name="login_title">INICIAR SESIÓN</string>
+    <string name="lbl_user">Usuario</string>
+    <string name="txt_user">Ingrese usuario</string>
+    <string name="lbl_password">Contraseña</string>
+    <string name="txt_password">Ingrese contraseña</string>
+    <string name="btn_login">Ingresar</string>
+    <string name="lbl_create_account">¿Sin cuenta? Registrate aquí</string>
+
 </resources>
