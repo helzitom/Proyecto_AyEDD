@@ -1,3 +1,21 @@
 <resources>
+    <!--> Credenciales de app -->
     <string name="app_name">Proyecto_AyEDD</string>
+    <string name="dev_1">Helson Palomino Lujan</string>
+    <string name="dev_2">Tu nombre aqui</string>
+    <string name="dev_3">Tu nombre</string>
+    <!--> Frase bajo la pagina de carga-->
+    <string name="desinged_by">Desarrollado por:</string>
+    <!--> Versión de la app-->
+    <string name="version"> versión 1.0.0</string>
+
+    <!-- Inicio de sesión -->
+    <string name="login_title">Inicie Sesión</string>
+    <string name="lbl_usuario">Usuario</string>
+    <string name="txt_usuario">Ingrese su usuario</string>
+    <string name="lbl_contraseña">Contraseña</string>
+    <string name="txt_contraseña">Ingrese su contraseña</string>
+    <string name="lbl_crear_cuenta">¿No tienes cuenta? Registrate aquí</string>
+
+    <!-- Registro -->
 </resources>
