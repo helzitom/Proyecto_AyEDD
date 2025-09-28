@@ -9,6 +9,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.helzitom.proyecto_ayedd.R;
+import com.helzitom.proyecto_ayedd.services.ConnectionService;
+import com.helzitom.proyecto_ayedd.services.FirebaseManager;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,5 +24,13 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        FirebaseManager.getInstance().initialize(this);
+
+        // Probar conectar
+        ConnectionService connectionService = new ConnectionService();
+        connectionService.testConnection();
     }
+
+
 }
