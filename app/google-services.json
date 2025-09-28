@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "600880458287",
+    "project_id": "margarita-app-e2873",
+    "storage_bucket": "margarita-app-e2873.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:600880458287:android:53a31464277c95ff3c74da",
+        "android_client_info": {
+          "package_name": "com.helzitom.proyecto_ayedd"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB41_NodISUh8ch-uJu8Oc0y-bHOwW-4wg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
