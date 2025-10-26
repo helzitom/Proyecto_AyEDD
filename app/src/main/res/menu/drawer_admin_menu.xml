@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_pedidos"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="Pedidos"/>
+
+        <item
+            android:id="@+id/nav_employees"
+            android:icon="@android:drawable/ic_menu_my_calendar"
+            android:title="Empleados"/>
+
+
+    </group>
+
+    <item android:title="Cuenta">
+        <menu>
+            <item
+                android:id="@+id/nav_perfil"
+                android:icon="@android:drawable/ic_menu_edit"
+                android:title="Mi Perfil"/>
+
+
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@android:drawable/ic_menu_close_clear_cancel"
+                android:title="Cerrar Sesión"/>
+        </menu>
+    </item>
+
+</menu>

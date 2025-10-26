@@ -17,4 +17,42 @@
     <string name="btn_login">Ingresar</string>
     <string name="lbl_create_account">¿Sin cuenta? Registrate aquí</string>
 
+    <!-- Registro de nuevo usuario -->
+    <string name="lbl_name">Ingrese sus nombres</string>
+    <string name="txt_name">Jose Juan</string>
+    <string name="lbl_lastname">Ingrese sus apellidos</string>
+    <string name="txt_lastname">Quispe Mamani</string>
+    <string name="lbl_usuario">Usuario</string>
+    <string name="txt_usuario">josesito_123</string>
+    <string name="lbl_email">Ingrese su correo</string>
+    <string name="txt_email">jose123@email.com</string>
+    <string name="lbl_pwd">Ingrese su contraseña</string>
+    <string name="txt_pwd">********</string>
+    <string name="lbl_register">Registrarse</string>
+
+    <!-- Navigation Drawer -->
+    <string name="navigation_drawer_open">Abrir menú</string>
+    <string name="navigation_drawer_close">Cerrar menú</string>
+
+    <!-- Admin -->
+    <string name="admin_title">Panel de Administrador</string>
+    <string name="pedidos_tab">Pedidos</string>
+    <string name="empleados_tab">Empleados</string>
+
+    <!-- Estados de pedidos -->
+    <string name="estado_pendiente">Pendiente</string>
+    <string name="estado_asignado">Asignado</string>
+    <string name="estado_en_camino">En Camino</string>
+    <string name="estado_entregado">Entregado</string>
+    <string name="estado_cancelado">Cancelado</string>
+
+    <!-- Tipos de empleado -->
+    <string name="tipo_delivery">Delivery</string>
+    <string name="tipo_receiver">Recepción</string>
+
+    <!-- Mensajes -->
+    <string name="loading">Cargando...</string>
+    <string name="error_loading_data">Error al cargar datos</string>
+    <string name="no_pedidos">No hay pedidos</string>
+    <string name="no_empleados">No hay empleados registrados</string>
 </resources>

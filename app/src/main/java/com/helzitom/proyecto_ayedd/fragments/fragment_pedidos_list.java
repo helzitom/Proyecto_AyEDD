@@ -1,5 +1,6 @@
-package com.helzitom.proyecto_ayedd.activities;
+package com.helzitom.proyecto_ayedd.fragments;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -10,13 +11,14 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.helzitom.proyecto_ayedd.R;
 
-public class EmployeeActivity extends AppCompatActivity {
+public class fragment_pedidos_list extends AppCompatActivity {
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_employee);
+        setContentView(R.layout.activity_fragment_pedidos_list);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);

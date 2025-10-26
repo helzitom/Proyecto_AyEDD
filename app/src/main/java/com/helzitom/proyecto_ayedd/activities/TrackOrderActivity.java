@@ -1,0 +1,194 @@
+package com.helzitom.proyecto_ayedd.activities;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.helzitom.proyecto_ayedd.R;
+import com.helzitom.proyecto_ayedd.models.Pedido;
+import com.helzitom.proyecto_ayedd.services.PedidoService;
+
+public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyCallback {
+    private static final String TAG = "TrackOrderActivity";
+    public static final String EXTRA_PEDIDO_ID = "pedido_id";
+
+    private GoogleMap mMap;
+    private PedidoService pedidoService;
+    private ListenerRegistration pedidoListener;
+    private String pedidoId;
+
+    private Marker markerOrigen;
+    private Marker markerDestino;
+    private Marker markerRepartidor;
+
+    // Vistas
+    private TextView tvEstado, tvRepartidor, tvDireccion;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_track_order);
+
+        pedidoId = getIntent().getStringExtra(EXTRA_PEDIDO_ID);
+        if (pedidoId == null) {
+            Toast.makeText(this, "Error: ID de pedido no encontrado", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        pedidoService = new PedidoService();
+
+        initViews();
+        setupMap();
+    }
+
+    private void initViews() {
+        tvEstado = findViewById(R.id.tv_track_estado);
+        tvRepartidor = findViewById(R.id.tv_track_repartidor);
+        tvDireccion = findViewById(R.id.tv_track_direccion);
+    }
+
+    private void setupMap() {
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map_track_fragment);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+
+        // Escuchar cambios del pedido en tiempo real
+        startListeningToPedido();
+    }
+
+    private void startListeningToPedido() {
+        Log.d(TAG, "👂 Iniciando escucha en tiempo real del pedido: " + pedidoId);
+
+        pedidoListener = pedidoService.escucharPedido(pedidoId, new PedidoService.PedidoRealtimeCallback() {
+            @Override
+            public void onPedidoChanged(Pedido pedido) {
+                Log.d(TAG, "📍 Pedido actualizado - Estado: " + pedido.getEstado());
+                updateUI(pedido);
+                updateMap(pedido);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Error: " + error);
+                Toast.makeText(TrackOrderActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateUI(Pedido pedido) {
+        // Actualizar información
+        tvEstado.setText(getEstadoText(pedido.getEstado()));
+        tvDireccion.setText("📍 " + pedido.getDireccionDestino());
+
+        if (pedido.getRepartidorNombre() != null) {
+            tvRepartidor.setText("🚚 " + pedido.getRepartidorNombre());
+        } else {
+            tvRepartidor.setText("🚚 Sin asignar");
+        }
+    }
+
+    private void updateMap(Pedido pedido) {
+        mMap.clear();
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+
+        // Marcador de origen (tienda)
+        LatLng origen = new LatLng(pedido.getLatitudOrigen(), pedido.getLongitudOrigen());
+        markerOrigen = mMap.addMarker(new MarkerOptions()
+                .position(origen)
+                .title("Origen - " + pedido.getDireccionOrigen())
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+        boundsBuilder.include(origen);
+
+        // Marcador de destino
+        LatLng destino = new LatLng(pedido.getLatitudDestino(), pedido.getLongitudDestino());
+        markerDestino = mMap.addMarker(new MarkerOptions()
+                .position(destino)
+                .title("Destino - " + pedido.getDireccionDestino())
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+        boundsBuilder.include(destino);
+
+        // Marcador del repartidor (si está en ruta)
+        if (pedido.isEnRuta() && pedido.getLatitudRepartidor() != 0) {
+            LatLng posicionRepartidor = new LatLng(pedido.getLatitudRepartidor(), pedido.getLongitudRepartidor());
+
+            if (markerRepartidor != null) {
+                // Animar el marcador existente
+                markerRepartidor.setPosition(posicionRepartidor);
+            } else {
+                // Crear nuevo marcador
+                markerRepartidor = mMap.addMarker(new MarkerOptions()
+                        .position(posicionRepartidor)
+                        .title("Repartidor - " + (pedido.getRepartidorNombre() != null ? pedido.getRepartidorNombre() : ""))
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+            }
+            boundsBuilder.include(posicionRepartidor);
+
+            // Dibujar línea de ruta
+            mMap.addPolyline(new PolylineOptions()
+                    .add(posicionRepartidor, destino)
+                    .width(5)
+                    .color(0xFF4CAF50)
+                    .geodesic(true));
+        }
+
+        // Ajustar cámara para mostrar todos los marcadores
+        try {
+            LatLngBounds bounds = boundsBuilder.build();
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+        } catch (Exception e) {
+            Log.e(TAG, "Error ajustando cámara", e);
+        }
+    }
+
+    private String getEstadoText(String estado) {
+        switch (estado) {
+            case "pendiente": return "⏳ Pendiente";
+            case "asignado": return "✅ Asignado";
+            case "en_camino": return "🚚 En Camino";
+            case "entregado": return "✅ Entregado";
+            case "cancelado": return "❌ Cancelado";
+            default: return estado;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Detener escucha
+        if (pedidoListener != null) {
+            pedidoListener.remove();
+        }
+    }
+}
