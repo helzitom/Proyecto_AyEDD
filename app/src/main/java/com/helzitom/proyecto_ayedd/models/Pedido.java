@@ -14,6 +14,8 @@ public class Pedido implements Serializable {
 
     private String codigoPedido;
 
+    private String codigoVerificacion;
+
     // Datos del cliente
     private String clienteId;
     private String clienteNombre;
@@ -72,9 +74,19 @@ public class Pedido implements Serializable {
         return codigoPedido;
     }
 
-    public void setcodigoPedido(String codigoPedido) {
+
+    public void setCodigoPedido(String codigoPedido) {
         this.codigoPedido = codigoPedido;
     }
+
+    public String getCodigoVerificacion() {
+        return codigoVerificacion;
+    }
+
+    public void setCodigoVerificacion(String codigoVerificacion) {
+        this.codigoVerificacion = codigoVerificacion;
+    }
+
 
     public String getClienteId() { return clienteId; }
     public void setClienteId(String clienteId) { this.clienteId = clienteId; }

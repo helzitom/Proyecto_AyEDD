@@ -13,11 +13,11 @@
     <color name="teal_700">#FF018786</color>
 
     <!-- Estados de pedidos -->
-    <color name="estado_pendiente">#FF9800</color>
-    <color name="estado_asignado">#2196F3</color>
-    <color name="estado_en_camino">#9C27B0</color>
-    <color name="estado_entregado">#4CAF50</color>
-    <color name="estado_cancelado">#F44336</color>
+    <color name="estado_pendiente">#FF9800</color>      <!-- Naranja -->
+    <color name="estado_en_camino">#2196F3</color>      <!-- Azul -->
+    <color name="estado_entregado">#4CAF50</color>      <!-- Verde -->
+    <color name="estado_cancelado">#F44336</color>      <!-- Rojo -->
+    <color name="estado_default">#9E9E9E</color>
 
     <!-- Otros colores -->
     <color name="admin_color">#FF5722</color> <!-- verde -->

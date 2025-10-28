@@ -1,11 +1,13 @@
 package com.helzitom.proyecto_ayedd.activities;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -25,6 +27,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.adapters.CustomerPedidosAdapter;
 import com.helzitom.proyecto_ayedd.models.Pedido;
+import com.helzitom.proyecto_ayedd.models.User;
 import com.helzitom.proyecto_ayedd.services.AuthService;
 import com.helzitom.proyecto_ayedd.services.PedidoService;
 
@@ -45,6 +48,9 @@ public class CustomerActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
+    private TextView tv_customer_name;
+    private Button btnNewOrder;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,14 +66,13 @@ public class CustomerActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
         fabLogout = findViewById(R.id.fab_logout);
         rvPedidos = findViewById(R.id.rv_customer_orders);
+        tv_customer_name = findViewById(R.id.tv_customer_name);
+        btnNewOrder = findViewById(R.id.btn_new_order);
 
-        Button btnNewOrder = findViewById(R.id.btn_new_order);
         btnNewOrder.setOnClickListener(v -> mostrarDialogoNuevoPedido());
 
         // 🔹 Configurar Toolbar
         setSupportActionBar(toolbar);
-        String tipoUsuario = getIntent().getStringExtra("tipo_usuario");
-        cambiarColorToolbar(tipoUsuario);
 
         // 🔹 Ajuste de márgenes por notch
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -79,6 +84,9 @@ public class CustomerActivity extends AppCompatActivity {
         // 🔹 Inicializar lista y RecyclerView
         pedidoList = new ArrayList<>();
         setupRecyclerView();
+
+        // 🔹 Cargar datos del usuario (incluye cambio de color)
+        cargarDatosUsuario();
 
         // 🔹 Escuchar pedidos en tiempo real
         escucharPedidosEnTiempoReal();
@@ -93,6 +101,48 @@ public class CustomerActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    // ========================
+    // 🔹 CARGAR DATOS DEL USUARIO
+    // ========================
+    private void cargarDatosUsuario() {
+        String userId = authService.getCurrentUserId();
+
+        if (userId == null) {
+            Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        User user = documentSnapshot.toObject(User.class);
+                        if (user != null) {
+                            updateUI(user);
+                            // Cambiar color según el tipo de usuario desde Firebase
+                            cambiarColorToolbar(user.getType());
+                        }
+                    } else {
+                        Log.e("CustomerActivity", "Usuario no encontrado en Firestore");
+                        Toast.makeText(this, "Error: Usuario no encontrado", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("CustomerActivity", "Error al cargar usuario", e);
+                    Toast.makeText(this, "Error al cargar datos del usuario", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // ========================
+    // 🔹 ACTUALIZAR UI CON DATOS DEL USUARIO
+    // ========================
+    private void updateUI(User user) {
+        if (tv_customer_name != null && user != null) {
+            String nombre = user.getName() != null ? user.getName() : "Usuario";
+            tv_customer_name.setText("👤 " + nombre);
+        }
     }
 
     // ========================
@@ -128,9 +178,6 @@ public class CustomerActivity extends AppCompatActivity {
                 });
     }
 
-    // ========================
-    // 🔹 MOSTRAR PEDIDO EN TIEMPO REAL
-    // ========================
     private void onVerEnTiempoReal(Pedido pedido) {
         Intent intent = new Intent(this, TrackOrderActivity.class);
         intent.putExtra(TrackOrderActivity.EXTRA_PEDIDO_ID, pedido.getId());
@@ -138,25 +185,52 @@ public class CustomerActivity extends AppCompatActivity {
     }
 
     // ========================
-    // 🔹 CAMBIAR COLOR TOOLBAR
+    // 🔹 CAMBIAR COLOR DEL TOOLBAR Y BOTÓN
     // ========================
     private void cambiarColorToolbar(String tipoUsuario) {
-        if (tipoUsuario == null) return;
-        int colorResId;
-        switch (tipoUsuario.toLowerCase()) {
-            case "admin": colorResId = R.color.admin_color; break;
-            case "cliente": colorResId = R.color.customer_color; break;
-            case "delivery": colorResId = R.color.delivery_color; break;
-            case "receiver": colorResId = R.color.receiver_color; break;
-            default: colorResId = R.color.main; break;
+        if (tipoUsuario == null) {
+            // Color por defecto si no hay tipo de usuario
+            toolbar.setBackgroundColor(ContextCompat.getColor(this, R.color.main));
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.mainDark));
+            btnNewOrder.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.main)));
+            return;
         }
+
+        int colorResId;
+        int statusBarColorResId;
+
+        switch (tipoUsuario.toLowerCase()) {
+            case "admin":
+                colorResId = R.color.admin_color;
+                statusBarColorResId = R.color.admin_color;
+                break;
+            case "customer":
+            case "cliente":
+                colorResId = R.color.customer_color;
+                statusBarColorResId = R.color.customer_color;
+                break;
+            case "delivery":
+                colorResId = R.color.delivery_color;
+                statusBarColorResId = R.color.delivery_color;
+                break;
+            case "receiver":
+                colorResId = R.color.receiver_color;
+                statusBarColorResId = R.color.receiver_color;
+                break;
+            default:
+                colorResId = R.color.main;
+                statusBarColorResId = R.color.mainDark;
+                break;
+        }
+
+        // Cambiar color del Toolbar y Status Bar
         toolbar.setBackgroundColor(ContextCompat.getColor(this, colorResId));
-        getWindow().setStatusBarColor(ContextCompat.getColor(this, colorResId));
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, statusBarColorResId));
+
+        // Cambiar color del botón "Nuevo Pedido"
+        btnNewOrder.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, colorResId)));
     }
 
-    // ========================
-    // 🔹 NUEVO PEDIDO POR ID
-    // ========================
     private void mostrarDialogoNuevoPedido() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Ingresar ID del pedido");
@@ -181,21 +255,41 @@ public class CustomerActivity extends AppCompatActivity {
 
     private void asignarPedidoAlUsuario(String codigoPedido) {
         String userId = authService.getCurrentUserId();
-        db.collection("pedidos").document(codigoPedido)
+
+        // Buscar el pedido por el campo codigoPedido
+        db.collection("pedidos")
+                .whereEqualTo("codigoPedido", codigoPedido)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        db.collection("pedidos").document(codigoPedido)
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        // Obtener el ID del documento encontrado
+                        String documentId = querySnapshot.getDocuments().get(0).getId();
+
+                        // Verificar si ya tiene cliente asignado
+                        String clienteIdActual = querySnapshot.getDocuments().get(0).getString("clienteId");
+
+                        if (clienteIdActual != null && !clienteIdActual.isEmpty()) {
+                            Toast.makeText(this, "⚠️ Este pedido ya está asignado a otro cliente", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        // Asignar el pedido al usuario
+                        db.collection("pedidos").document(documentId)
                                 .update("clienteId", userId, "fechaAsignacion", new Date())
                                 .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(this, "Pedido asignado correctamente ✔️", Toast.LENGTH_SHORT).show();
-                                    // ✅ Se recargan los pedidos automáticamente por el listener en tiempo real
+                                    Toast.makeText(this, "✅ Pedido asignado correctamente", Toast.LENGTH_SHORT).show();
                                 })
-                                .addOnFailureListener(e -> Toast.makeText(this, "Error al asignar pedido ❌", Toast.LENGTH_SHORT).show());
+                                .addOnFailureListener(e -> {
+                                    Log.e("CustomerActivity", "Error al asignar pedido", e);
+                                    Toast.makeText(this, "❌ Error al asignar pedido", Toast.LENGTH_SHORT).show();
+                                });
                     } else {
-                        Toast.makeText(this, "ID de pedido no válido ❌", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "❌ Código de pedido no válido", Toast.LENGTH_LONG).show();
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error al consultar pedido ❌", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Log.e("CustomerActivity", "Error al consultar pedido", e);
+                    Toast.makeText(this, "❌ Error al consultar pedido", Toast.LENGTH_SHORT).show();
+                });
     }
 }

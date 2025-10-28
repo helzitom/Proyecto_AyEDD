@@ -1,21 +1,14 @@
 package com.helzitom.proyecto_ayedd.activities;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
+
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -45,7 +38,7 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
     private Marker markerRepartidor;
 
     // Vistas
-    private TextView tvEstado, tvRepartidor, tvDireccion;
+    private TextView tvEstado, tvRepartidor, tvDireccion, tvcodigoVerificacion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +62,7 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
         tvEstado = findViewById(R.id.tv_track_estado);
         tvRepartidor = findViewById(R.id.tv_track_repartidor);
         tvDireccion = findViewById(R.id.tv_track_direccion);
+        tvcodigoVerificacion = findViewById(R.id.tv_codigo_verificacion);
     }
 
     private void setupMap() {
@@ -117,6 +111,9 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
         } else {
             tvRepartidor.setText("🚚 Sin asignar");
         }
+
+        tvcodigoVerificacion.setText("💨 Codigo de Verificación: " + pedido.getCodigoVerificacion());
+
     }
 
     private void updateMap(Pedido pedido) {

@@ -32,7 +32,7 @@ public class DeliveryActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private RecyclerView rvPedidos;
     private LinearLayout layoutEmpty;
-    private TextView tvDeliveryStatus, tvPedidosHoy, tvGananciasHoy;
+    private TextView tvDeliveryStatus, tvPedidosHoy;
     private SwitchMaterial switchAvailable;
     private FloatingActionButton fabLogout;
 
@@ -65,7 +65,7 @@ public class DeliveryActivity extends AppCompatActivity {
         layoutEmpty = findViewById(R.id.layout_empty_delivery);
         tvDeliveryStatus = findViewById(R.id.tv_delivery_status);
         tvPedidosHoy = findViewById(R.id.tv_pedidos_hoy);
-        tvGananciasHoy = findViewById(R.id.tv_ganancias_hoy);
+
         switchAvailable = findViewById(R.id.switch_available);
         fabLogout = findViewById(R.id.fab_logout);
     }
@@ -142,20 +142,26 @@ public class DeliveryActivity extends AppCompatActivity {
             public void onSuccess(List<Pedido> pedidos) {
                 Log.d(TAG, "✅ Pedidos cargados: " + pedidos.size());
 
-                // Filtrar pedidos disponibles
                 List<Pedido> pedidosDisponibles = new ArrayList<>();
+
                 for (Pedido p : pedidos) {
-                    // Pedidos pendientes o asignados a este repartidor
-                    if ("pendiente".equals(p.getEstado()) ||
-                            (repartidorId.equals(p.getRepartidorId()) &&
-                                    "asignado".equals(p.getEstado()))) {
+                    String estado = p.getEstado() != null ? p.getEstado().toLowerCase() : "";
+
+                    // Filtrar:
+                    // 1️⃣ pedidos pendientes (aún no tomados)
+                    // 2️⃣ pedidos asignados al repartidor actual
+                    // 3️⃣ pedidos en camino del mismo repartidor
+                    if ("pendiente".equals(estado)
+                            || ("asignado".equals(estado) && repartidorId.equals(p.getRepartidorId()))
+                            || ("en_camino".equals(estado) && repartidorId.equals(p.getRepartidorId()))
+                            || ("en camino".equals(estado) && repartidorId.equals(p.getRepartidorId()))) {
+
                         pedidosDisponibles.add(p);
                     }
                 }
 
                 updateUI(pedidosDisponibles);
 
-                // Detener animación de refresh
                 swipeRefresh.setRefreshing(false);
             }
 
@@ -164,12 +170,11 @@ public class DeliveryActivity extends AppCompatActivity {
                 Log.e(TAG, "❌ Error: " + error);
                 Toast.makeText(DeliveryActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
                 showEmpty(true);
-
-                // Detener animación de refresh
                 swipeRefresh.setRefreshing(false);
             }
         });
     }
+
 
     private void loadMisPedidosAsignados(String repartidorId) {
         pedidoService.obtenerPedidosPorRepartidor(repartidorId, "asignado",
@@ -201,7 +206,6 @@ public class DeliveryActivity extends AppCompatActivity {
         // Actualizar estadísticas
         tvPedidosHoy.setText(String.valueOf(pedidos.size()));
         // TODO: Calcular ganancias reales
-        tvGananciasHoy.setText("S/ 0");
     }
 
     private void showEmpty(boolean show) {

@@ -8,13 +8,16 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.models.Pedido;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class CustomerPedidosAdapter extends RecyclerView.Adapter<CustomerPedidosAdapter.ViewHolder> {
 
@@ -40,14 +43,34 @@ public class CustomerPedidosAdapter extends RecyclerView.Adapter<CustomerPedidos
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Pedido pedido = listaPedidos.get(position);
 
-        // 🔹 Mostrar datos del pedido
-        holder.tvPedidoId.setText("Pedido #" + (pedido.getId() != null ? pedido.getId() : "Desconocido"));
-        holder.tvDireccion.setText("📍 " + (pedido.getDireccionDestino() != null ? pedido.getDireccionDestino() : "Sin dirección"));
-        holder.tvFecha.setText(pedido.getFechaAsignacion() != null ? pedido.getFechaAsignacion().toString() : "Fecha desconocida");
-        holder.tvTotal.setText("S/ " + pedido.getTotal());
+        // 🔹 Mostrar código del pedido
+        String codigoPedido = pedido.getcodigoPedido() != null ? pedido.getcodigoPedido() : "Sin código";
+        holder.tvPedidoId.setText("📦 Pedido #" + codigoPedido);
 
-        // 🔹 Estado
-        holder.chipEstado.setText(pedido.getEstado() != null ? pedido.getEstado().toUpperCase() : "DESCONOCIDO");
+        // 🔹 Dirección
+        String direccion = pedido.getDireccionDestino() != null ? pedido.getDireccionDestino() : "Sin dirección";
+        holder.tvDireccion.setText("📍 " + direccion);
+
+        // 🔹 Fecha formateada
+        if (pedido.getFechaAsignacion() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            holder.tvFecha.setText("🕒 " + sdf.format(pedido.getFechaAsignacion()));
+        } else {
+            holder.tvFecha.setText("🕒 Fecha desconocida");
+        }
+
+        // 🔹 Total
+        double total = pedido.getTotal();
+        holder.tvTotal.setText(String.format(Locale.getDefault(), "💰 S/ %.2f", total));
+
+        // 🔹 Estado con colores
+        String estado = pedido.getEstado() != null ? pedido.getEstado() : "desconocido";
+        holder.chipEstado.setText(formatearEstado(estado));
+
+        // Cambiar color según estado
+        int colorFondo = getColorEstado(estado);
+        holder.chipEstado.setBackgroundColor(ContextCompat.getColor(context, colorFondo));
+        holder.chipEstado.setTextColor(ContextCompat.getColor(context, android.R.color.white));
 
         // 🔹 Botón: Ver seguimiento en tiempo real
         holder.btnVerSeguimiento.setOnClickListener(v -> {
@@ -64,6 +87,40 @@ public class CustomerPedidosAdapter extends RecyclerView.Adapter<CustomerPedidos
     public void updateList(List<Pedido> nuevaLista) {
         this.listaPedidos = nuevaLista != null ? nuevaLista : new ArrayList<>();
         notifyDataSetChanged();
+    }
+
+    // 🎨 Formatear estado
+    private String formatearEstado(String estado) {
+        switch (estado.toLowerCase()) {
+            case "pendiente":
+                return "⏳ PENDIENTE";
+            case "en camino":
+            case "en_camino":
+                return "🚚 EN CAMINO";
+            case "entregado":
+                return "✅ ENTREGADO";
+            case "cancelado":
+                return "❌ CANCELADO";
+            default:
+                return "❓ " + estado.toUpperCase();
+        }
+    }
+
+    // 🎨 Obtener color según estado
+    private int getColorEstado(String estado) {
+        switch (estado.toLowerCase()) {
+            case "pendiente":
+                return R.color.estado_pendiente; // Naranja
+            case "en camino":
+            case "en_camino":
+                return R.color.estado_en_camino; // Azul
+            case "entregado":
+                return R.color.estado_entregado; // Verde
+            case "cancelado":
+                return R.color.estado_cancelado; // Rojo
+            default:
+                return R.color.estado_default; // Gris
+        }
     }
 
     // 🔹 Interfaz para manejar eventos

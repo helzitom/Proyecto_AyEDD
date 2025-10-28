@@ -60,6 +60,15 @@
                 android:layout_marginBottom="16dp"/>
 
             <TextView
+                android:id="@+id/tv_codigo_verificacion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🕳 Codigo de Verificación"
+                android:textSize="14sp"
+                android:textColor="#757575"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="💡 Tu pedido se actualiza en tiempo real"

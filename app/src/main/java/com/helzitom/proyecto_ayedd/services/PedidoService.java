@@ -220,23 +220,6 @@ public class PedidoService {
                 });
     }
 
-    public void obtenerPedidosPorCliente(String clienteId, PedidosListCallback callback) {
-        db.collection(COLLECTION_PEDIDOS)
-                .whereEqualTo("clienteId", clienteId)
-                .orderBy("fechaCreacion", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Pedido> pedidos = new ArrayList<>();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Pedido pedido = document.toObject(Pedido.class);
-                        pedido.setId(document.getId());
-                        pedidos.add(pedido);
-                    }
-                    callback.onSuccess(pedidos);
-                })
-                .addOnFailureListener(e -> callback.onError(e.getMessage()));
-    }
-
     public void obtenerPedidosPorRepartidor(String repartidorId, String estado, PedidosListCallback callback) {
         db.collection(COLLECTION_PEDIDOS)
                 .whereEqualTo("repartidorId", repartidorId)
@@ -254,18 +237,7 @@ public class PedidoService {
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
-    public void cambiarEstadoYNotificar(String pedidoId, String nuevoEstado, String clienteId) {
-        // Actualizar estado
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("estado", nuevoEstado);
 
-        db.collection(COLLECTION_PEDIDOS).document(pedidoId)
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    // Enviar notificación al cliente
-                    enviarNotificacion(clienteId, nuevoEstado, pedidoId);
-                });
-    }
 
     private void enviarNotificacion(String clienteId, String estado, String pedidoId) {
         // Aquí implementarías la lógica para enviar notificación push

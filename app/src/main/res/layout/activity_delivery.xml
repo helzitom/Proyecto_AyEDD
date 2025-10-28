@@ -90,97 +90,45 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Estadísticas -->
-                <LinearLayout
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginBottom="16dp"
-                    android:weightSum="2">
+                    app:cardElevation="4dp"
+                    app:cardCornerRadius="8dp">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="8dp">
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp"
-                            android:gravity="center">
+                            android:text="📦"
+                            android:textSize="32sp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📦"
-                                android:textSize="32sp"/>
-
-                            <TextView
-                                android:id="@+id/tv_pedidos_hoy"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0"
-                                android:textSize="28sp"
-                                android:textStyle="bold"
-                                android:layout_marginTop="8dp"/>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Pedidos hoy"
-                                android:textSize="12sp"
-                                android:textColor="#757575"/>
-
-                        </LinearLayout>
-
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="8dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:id="@+id/tv_pedidos_hoy"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp"
-                            android:gravity="center">
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="💰"
-                                android:textSize="32sp"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pedidos hoy"
+                            android:textColor="#757575"
+                            android:textSize="12sp" />
 
-                            <TextView
-                                android:id="@+id/tv_ganancias_hoy"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="S/ 0"
-                                android:textSize="28sp"
-                                android:textStyle="bold"
-                                android:textColor="#4CAF50"
-                                android:layout_marginTop="8dp"/>
+                    </LinearLayout>
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Ganancias hoy"
-                                android:textSize="12sp"
-                                android:textColor="#757575"/>
-
-                        </LinearLayout>
-
-                    </com.google.android.material.card.MaterialCardView>
-
-                </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
                 <!-- Título -->
                 <TextView
