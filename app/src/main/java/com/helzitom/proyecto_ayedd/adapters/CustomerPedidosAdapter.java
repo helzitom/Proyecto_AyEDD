@@ -72,10 +72,36 @@ public class CustomerPedidosAdapter extends RecyclerView.Adapter<CustomerPedidos
         holder.chipEstado.setBackgroundColor(ContextCompat.getColor(context, colorFondo));
         holder.chipEstado.setTextColor(ContextCompat.getColor(context, android.R.color.white));
 
-        // 🔹 Botón: Ver seguimiento en tiempo real
-        holder.btnVerSeguimiento.setOnClickListener(v -> {
-            if (listener != null) listener.onVerEnTiempoRealClick(pedido);
-        });
+        // 🔹 LÓGICA DEL BOTÓN: Solo habilitar para "en_camino" y "asignado"
+        String estadoNormalizado = estado.toLowerCase().replace(" ", "_");
+        boolean puedeVerEnTiempoReal = estadoNormalizado.equals("en_camino") || estadoNormalizado.equals("asignado");
+
+        holder.btnVerSeguimiento.setEnabled(puedeVerEnTiempoReal);
+        holder.btnVerSeguimiento.setAlpha(puedeVerEnTiempoReal ? 1.0f : 0.5f);
+
+        if (puedeVerEnTiempoReal) {
+            holder.btnVerSeguimiento.setText("🗺️ Ver en Tiempo Real");
+            holder.btnVerSeguimiento.setOnClickListener(v -> {
+                if (listener != null) listener.onVerEnTiempoRealClick(pedido);
+            });
+        } else {
+            // Cambiar texto según el estado
+            switch (estadoNormalizado) {
+                case "pendiente":
+                    holder.btnVerSeguimiento.setText("⏳ Esperando asignación");
+                    break;
+                case "entregado":
+                    holder.btnVerSeguimiento.setText("✅ Pedido entregado");
+                    break;
+                case "cancelado":
+                    holder.btnVerSeguimiento.setText("❌ Pedido cancelado");
+                    break;
+                default:
+                    holder.btnVerSeguimiento.setText("🗺️ No disponible");
+                    break;
+            }
+            holder.btnVerSeguimiento.setOnClickListener(null);
+        }
     }
 
     @Override
@@ -91,10 +117,11 @@ public class CustomerPedidosAdapter extends RecyclerView.Adapter<CustomerPedidos
 
     // 🎨 Formatear estado
     private String formatearEstado(String estado) {
-        switch (estado.toLowerCase()) {
+        switch (estado.toLowerCase().replace(" ", "_")) {
             case "pendiente":
                 return "⏳ PENDIENTE";
-            case "en camino":
+            case "asignado":
+                return "✅ ASIGNADO";
             case "en_camino":
                 return "🚚 EN CAMINO";
             case "entregado":
@@ -108,12 +135,13 @@ public class CustomerPedidosAdapter extends RecyclerView.Adapter<CustomerPedidos
 
     // 🎨 Obtener color según estado
     private int getColorEstado(String estado) {
-        switch (estado.toLowerCase()) {
+        switch (estado.toLowerCase().replace(" ", "_")) {
             case "pendiente":
                 return R.color.estado_pendiente; // Naranja
-            case "en camino":
+            case "asignado":
+                return R.color.customer_color; // Azul
             case "en_camino":
-                return R.color.estado_en_camino; // Azul
+                return R.color.estado_en_camino; // Azul/Verde
             case "entregado":
                 return R.color.estado_entregado; // Verde
             case "cancelado":

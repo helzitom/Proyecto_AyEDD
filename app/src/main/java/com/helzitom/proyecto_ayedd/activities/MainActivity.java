@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -25,7 +26,7 @@ import com.helzitom.proyecto_ayedd.services.FirebaseManager;
 
 public class MainActivity extends AppCompatActivity {
 
-
+    private TextView tvOlvidarContrasena;
     private EditText etEmail, etPassword;
     private Button btnLogin;
     private ProgressBar progressBar;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.et_password);
         btnLogin = findViewById(R.id.btn_login);
         progressBar = findViewById(R.id.progressBar);
+        tvOlvidarContrasena = findViewById(R.id.tv_forgot_password);
 
         // Firebase
         auth = FirebaseAuth.getInstance();

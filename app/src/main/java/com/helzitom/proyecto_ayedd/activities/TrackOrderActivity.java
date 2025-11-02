@@ -1,13 +1,11 @@
 package com.helzitom.proyecto_ayedd.activities;
 
-
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -89,6 +87,7 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public void onPedidoChanged(Pedido pedido) {
                 Log.d(TAG, "📍 Pedido actualizado - Estado: " + pedido.getEstado());
+                Log.d(TAG, "📍 Lat Repartidor: " + pedido.getLatitudRepartidor() + ", Lng: " + pedido.getLongitudRepartidor());
                 updateUI(pedido);
                 updateMap(pedido);
             }
@@ -113,10 +112,11 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
         }
 
         tvcodigoVerificacion.setText("💨 Codigo de Verificación: " + pedido.getCodigoVerificacion());
-
     }
 
     private void updateMap(Pedido pedido) {
+        if (mMap == null) return;
+
         mMap.clear();
         LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
 
@@ -136,36 +136,44 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
         boundsBuilder.include(destino);
 
-        // Marcador del repartidor (si está en ruta)
-        if (pedido.isEnRuta() && pedido.getLatitudRepartidor() != 0) {
-            LatLng posicionRepartidor = new LatLng(pedido.getLatitudRepartidor(), pedido.getLongitudRepartidor());
+        // CORREGIDO: Verificar coordenadas del repartidor independientemente del estado
+        // Las coordenadas válidas deben ser diferentes de 0
+        double latRepartidor = pedido.getLatitudRepartidor();
+        double lngRepartidor = pedido.getLongitudRepartidor();
 
-            if (markerRepartidor != null) {
-                // Animar el marcador existente
-                markerRepartidor.setPosition(posicionRepartidor);
-            } else {
-                // Crear nuevo marcador
-                markerRepartidor = mMap.addMarker(new MarkerOptions()
-                        .position(posicionRepartidor)
-                        .title("Repartidor - " + (pedido.getRepartidorNombre() != null ? pedido.getRepartidorNombre() : ""))
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-            }
+        Log.d(TAG, "🔍 Verificando repartidor - Lat: " + latRepartidor + ", Lng: " + lngRepartidor);
+
+        if (latRepartidor != 0 && lngRepartidor != 0) {
+            LatLng posicionRepartidor = new LatLng(latRepartidor, lngRepartidor);
+
+            // Crear o actualizar marcador del repartidor
+            markerRepartidor = mMap.addMarker(new MarkerOptions()
+                    .position(posicionRepartidor)
+                    .title("Repartidor - " + (pedido.getRepartidorNombre() != null ? pedido.getRepartidorNombre() : "En camino"))
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
             boundsBuilder.include(posicionRepartidor);
 
-            // Dibujar línea de ruta
+            Log.d(TAG, "✅ Marcador del repartidor añadido en: " + posicionRepartidor);
+
+            // Dibujar línea de ruta desde repartidor hasta destino
             mMap.addPolyline(new PolylineOptions()
                     .add(posicionRepartidor, destino)
-                    .width(5)
+                    .width(8)
                     .color(0xFF4CAF50)
                     .geodesic(true));
+        } else {
+            Log.w(TAG, "⚠️ Coordenadas del repartidor inválidas o no disponibles");
         }
 
         // Ajustar cámara para mostrar todos los marcadores
         try {
             LatLngBounds bounds = boundsBuilder.build();
-            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
         } catch (Exception e) {
             Log.e(TAG, "Error ajustando cámara", e);
+            // Fallback: centrar en el destino
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destino, 14));
         }
     }
 

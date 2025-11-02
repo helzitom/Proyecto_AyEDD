@@ -203,42 +203,6 @@ public class AuthService {
                 });
     }
 
-    // ========== RECUPERACIÓN DE CONTRASEÑA ==========
-
-    // Recuperar contraseña
-    public void recuperarPassword(String email, PasswordResetCallback callback) {
-        if (email == null || email.isEmpty()) {
-            callback.onError("Ingresa tu email");
-            return;
-        }
-
-        Log.d(TAG, "📧 Enviando email de recuperación a: " + email);
-
-        mAuth.sendPasswordResetEmail(email)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Email de recuperación enviado");
-                    callback.onSuccess();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error enviando email", e);
-                    callback.onError(getErrorMessage(e));
-                });
-    }
-
-    // ========== VERIFICACIÓN ==========
-
-    // Actualizar estado de verificación
-    public void updateVerificationStatus(String userId, boolean isVerified) {
-        db.collection(COLLECTION_USERS)
-                .document(userId)
-                .update("isVerified", isVerified)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Estado de verificación actualizado");
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error al actualizar verificación", e);
-                });
-    }
 
     // ========== UTILIDADES ==========
 

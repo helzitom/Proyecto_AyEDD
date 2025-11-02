@@ -41,8 +41,8 @@ public class CreateOrderActivity extends AppCompatActivity implements OnMapReady
     private static final int LOCATION_PERMISSION_REQUEST = 100;
 
     // Ubicación por defecto (Lima, Perú)
-    private static final LatLng DEFAULT_LOCATION = new LatLng(-12.0464, -77.0428);
-    private static final LatLng TIENDA_LOCATION = new LatLng(-12.0464, -77.0428);
+    private static final LatLng DEFAULT_LOCATION = new LatLng(-12.035459199003247, -76.9906445035023);
+    private static final LatLng TIENDA_LOCATION = new LatLng(-12.035459199003247, -76.9906445035023);
 
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;

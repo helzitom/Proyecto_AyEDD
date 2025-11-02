@@ -64,29 +64,6 @@ public class PedidoService {
                 });
     }
 
-    // ========== ASIGNAR REPARTIDOR ==========
-
-    public void asignarRepartidor(String pedidoId, String repartidorId, String repartidorNombre, UpdateCallback callback) {
-        Log.d(TAG, "🚚 Asignando repartidor al pedido: " + pedidoId);
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("repartidorId", repartidorId);
-        updates.put("repartidorNombre", repartidorNombre);
-        updates.put("estado", "asignado");
-        updates.put("fechaAsignacion", new Date());
-
-        db.collection(COLLECTION_PEDIDOS).document(pedidoId)
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Repartidor asignado");
-                    callback.onSuccess();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error asignando repartidor", e);
-                    callback.onError(e.getMessage());
-                });
-    }
-
     // ========== INICIAR RUTA ==========
 
     public void iniciarRuta(String pedidoId, double latInicial, double lngInicial, UpdateCallback callback) {
