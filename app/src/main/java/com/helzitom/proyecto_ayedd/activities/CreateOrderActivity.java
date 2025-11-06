@@ -269,7 +269,7 @@ public class CreateOrderActivity extends AppCompatActivity implements OnMapReady
 
         // Crear items del pedido
         List<ItemPedido> items = new ArrayList<>();
-        items.add(new ItemPedido("Producto", 1, subtotal, ""));
+        items.add(new ItemPedido("Producto", 1, subtotal));
         pedido.setItems(items);
 
         // Deshabilitar botón para evitar múltiples clics
@@ -281,7 +281,7 @@ public class CreateOrderActivity extends AppCompatActivity implements OnMapReady
             @Override
             public void onSuccess(String pedidoId) {
                 runOnUiThread(() -> {
-                    Toast.makeText(CreateOrderActivity.this, "✅ Pedido creado exitosamente", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CreateOrderActivity.this, "Pedido creado exitosamente", Toast.LENGTH_SHORT).show();
 
                     // 🔹 IMPORTANTE: Establecer resultado de éxito antes de cerrar
                     setResult(RESULT_OK);
@@ -293,7 +293,7 @@ public class CreateOrderActivity extends AppCompatActivity implements OnMapReady
             public void onError(String error) {
                 runOnUiThread(() -> {
                     Log.e(TAG, "Error al crear pedido: " + error);
-                    Toast.makeText(CreateOrderActivity.this, "❌ Error al crear pedido: " + error, Toast.LENGTH_LONG).show();
+                    Toast.makeText(CreateOrderActivity.this, "Error al crear pedido: " + error, Toast.LENGTH_LONG).show();
 
                     // Rehabilitar botón
                     btnCreateOrder.setEnabled(true);

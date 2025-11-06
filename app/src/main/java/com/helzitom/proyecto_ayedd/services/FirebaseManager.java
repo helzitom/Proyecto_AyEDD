@@ -8,6 +8,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;
 
+//Servicio para la administración de Firebase
 public class FirebaseManager {
     private static final String TAG = "FirebaseManager";
     private static FirebaseManager instance;
@@ -25,6 +26,7 @@ public class FirebaseManager {
         return instance;
     }
 
+    //Método para la inicialización del servicio de Firebase
     public void initialize(Context context) {
         if (!isInitialized) {
             try {
@@ -51,9 +53,5 @@ public class FirebaseManager {
             throw new IllegalStateException("FirebaseManager no ha sido inicializado. Llama initialize() primero.");
         }
         return auth;
-    }
-
-    public boolean isInitialized() {
-        return isInitialized;
     }
 }

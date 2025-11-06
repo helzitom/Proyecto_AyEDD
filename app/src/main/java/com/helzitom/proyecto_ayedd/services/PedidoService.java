@@ -29,6 +29,7 @@ public class PedidoService {
     private PedidosAdapter adapter;
     private Context context;
 
+    //Constructor del pedido
     public PedidoService(Context context, List<Pedido> pedidoList, PedidosAdapter adapter) {
         this.context = context;
         this.pedidoList = pedidoList;
@@ -39,8 +40,7 @@ public class PedidoService {
         this.db = FirebaseManager.getInstance().getFirestore();
     }
 
-    // ========== CREAR PEDIDO ==========
-
+    //Método para crear pedido
     public void crearPedido(Pedido pedido, PedidoCallback callback) {
         Log.d(TAG, "📝 Creando pedido");
 
@@ -64,7 +64,7 @@ public class PedidoService {
                 });
     }
 
-    // ========== INICIAR RUTA ==========
+    // Método usado al iniciar la ruta
 
     public void iniciarRuta(String pedidoId, double latInicial, double lngInicial, UpdateCallback callback) {
         Log.d(TAG, "🚀 Iniciando ruta del pedido: " + pedidoId);
@@ -89,7 +89,7 @@ public class PedidoService {
                 });
     }
 
-    // ========== ACTUALIZAR UBICACIÓN EN TIEMPO REAL ==========
+    // Método para actualizar la ubicación del repartidor
 
     public void actualizarUbicacionRepartidor(String pedidoId, double lat, double lng, UpdateCallback callback) {
         Map<String, Object> updates = new HashMap<>();
@@ -109,7 +109,7 @@ public class PedidoService {
                 });
     }
 
-    // ========== MARCAR COMO ENTREGADO ==========
+    // Método para cambiar el estado del pedido a entregado
 
     public void marcarComoEntregado(String pedidoId, UpdateCallback callback) {
         Log.d(TAG, "✅ Marcando pedido como entregado: " + pedidoId);
@@ -131,7 +131,7 @@ public class PedidoService {
                 });
     }
 
-    // ========== ESCUCHAR PEDIDO EN TIEMPO REAL ==========
+    // Escuchar el pedido en tiempo real
 
     public ListenerRegistration escucharPedido(String pedidoId, PedidoRealtimeCallback callback) {
         Log.d(TAG, "👂 Escuchando pedido en tiempo real: " + pedidoId);
@@ -154,7 +154,7 @@ public class PedidoService {
                 });
     }
 
-    // ========== OBTENER PEDIDOS ==========
+    // Método para obtenrer todos los pedidos
 
     public void obtenerTodosPedidos(PedidosListCallback callback) {
         Log.d(TAG, "🔍 Obteniendo todos los pedidos");
@@ -165,7 +165,7 @@ public class PedidoService {
                     List<Pedido> pedidos = new ArrayList<>();
 
                     for (QueryDocumentSnapshot document : querySnapshot) {
-                        // ✅ VER TODOS LOS DATOS DEL DOCUMENTO
+                        // Datos del peddo
                         Map<String, Object> data = document.getData();
                         Log.d(TAG, "====================================");
                         Log.d(TAG, "📄 ID Documento: " + document.getId());
@@ -197,6 +197,7 @@ public class PedidoService {
                 });
     }
 
+    //Método para obtener pedidos segun el repartidor asignado
     public void obtenerPedidosPorRepartidor(String repartidorId, String estado, PedidosListCallback callback) {
         db.collection(COLLECTION_PEDIDOS)
                 .whereEqualTo("repartidorId", repartidorId)
@@ -214,13 +215,7 @@ public class PedidoService {
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
-
-
-    private void enviarNotificacion(String clienteId, String estado, String pedidoId) {
-        // Aquí implementarías la lógica para enviar notificación push
-        // usando Firebase Cloud Functions o tu backend
-    }
-
+    //Método para escuchar todos los pedidos en tiempo real
     public void escucharPedidosTiempoReal() {
         db.collection("pedidos")
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -276,17 +271,6 @@ public class PedidoService {
     }
 
 
-    // Callbacks
-    public interface OnPedidoCreadoListener {
-        void onSuccess(String idCorto, String firestoreId);
-        void onError(String error);
-    }
-
-    private interface IdCortoCallback {
-        void onGenerado(String idCortoUnico);
-        void onError(String error);
-    }
-
 
     // ========== INTERFACES ==========
 
@@ -302,6 +286,7 @@ public class PedidoService {
         void onError(String error);
     }
 
+    //Callbacks para ser ejecutados luego de que se completen los procesos
     public interface PedidosListCallback {
         void onSuccess(List<Pedido> pedidos);
         void onError(String error);
@@ -313,6 +298,7 @@ public class PedidoService {
         void onError(String error);
     }
 
+    //Método para
     private String generarCodigoVerificacion() {
         String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder codigo = new StringBuilder();

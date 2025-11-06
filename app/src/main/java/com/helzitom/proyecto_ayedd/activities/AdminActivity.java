@@ -11,6 +11,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -22,8 +23,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.adapters.AdminPagerAdapter;
 import com.helzitom.proyecto_ayedd.dialogs.AddEmployeeDialog;
+import com.helzitom.proyecto_ayedd.fragments.EmployeesFragment;
+import com.helzitom.proyecto_ayedd.fragments.PedidosFragment;
 import com.helzitom.proyecto_ayedd.services.AuthService;
-import com.helzitom.proyecto_ayedd.services.EmployeeService;
 import com.helzitom.proyecto_ayedd.services.FirebaseManager;
 
 public class AdminActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -129,6 +131,7 @@ public class AdminActivity extends AppCompatActivity implements NavigationView.O
 
     private void showAddEmployeeDialog() {
         AddEmployeeDialog dialog = new AddEmployeeDialog();
+        dialog.setOnEmployeeAddedListener(() -> reloadEmployeesFragment());
         dialog.show(getSupportFragmentManager(), "AddEmployeeDialog");
     }
 
@@ -167,4 +170,17 @@ public class AdminActivity extends AppCompatActivity implements NavigationView.O
             super.onBackPressed();
         }
     }
+
+
+    private void reloadEmployeesFragment() {
+        int employeesPosition = 1; // Pestaña 1 = Empleados
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag("f" + employeesPosition);
+
+        if (fragment instanceof EmployeesFragment) {
+            ((EmployeesFragment) fragment).reloadEmployees();
+            Toast.makeText(this, "Lista de empleados actualizada", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 }

@@ -10,6 +10,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.helzitom.proyecto_ayedd.R;
 
+//Clase para el fragmento del layout de empleados
 public class fragment_employees_list extends AppCompatActivity {
 
     @Override

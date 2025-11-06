@@ -41,16 +41,13 @@ public class DeliveryPedidosAdapter extends RecyclerView.Adapter<DeliveryPedidos
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Pedido pedido = listaPedidos.get(position);
 
-        // 🔹 Evitar NullPointerException si algún campo viene nulo
+        // Evitar NullPointerException si algún campo viene nulo
         holder.tvCliente.setText("👤 Cliente: " + safe(pedido.getClienteNombre()));
         holder.tvDireccion.setText("📍 " + safe(pedido.getDireccionDestino()));
         holder.tvTelefono.setText("📞 " + safe(pedido.getClienteTelefono()));
         holder.tvTotal.setText("💰 S/ " + pedido.getTotal());
 
-        // 🔹 Botones funcionales
-        holder.btnVerMapa.setOnClickListener(v -> {
-            if (listener != null) listener.onVerMapaClick(pedido);
-        });
+        // Botones funcionales
 
         holder.btnIniciar.setOnClickListener(v -> {
             if (listener != null && pedido.getId() != null) {
@@ -83,7 +80,7 @@ public class DeliveryPedidosAdapter extends RecyclerView.Adapter<DeliveryPedidos
     // 🧱 ViewHolder
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvCliente, tvDireccion, tvTelefono, tvTotal;
-        Button btnVerMapa, btnIniciar;
+        Button  btnIniciar;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -91,7 +88,6 @@ public class DeliveryPedidosAdapter extends RecyclerView.Adapter<DeliveryPedidos
             tvDireccion = itemView.findViewById(R.id.tv_delivery_pedido_direccion);
             tvTelefono = itemView.findViewById(R.id.tv_delivery_pedido_telefono);
             tvTotal = itemView.findViewById(R.id.tv_delivery_pedido_total);
-            btnVerMapa = itemView.findViewById(R.id.btn_delivery_ver_mapa);
             btnIniciar = itemView.findViewById(R.id.btn_delivery_iniciar);
         }
     }

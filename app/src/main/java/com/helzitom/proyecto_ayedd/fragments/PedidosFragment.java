@@ -22,6 +22,7 @@ import com.helzitom.proyecto_ayedd.services.PedidoService;
 import java.util.ArrayList;
 import java.util.List;
 
+//Clase de el fragmento de todos los pedidos
 public class PedidosFragment extends Fragment {
     private static final String TAG = "PedidosFragment";
 
@@ -35,6 +36,7 @@ public class PedidosFragment extends Fragment {
     private List<Pedido> allPedidos;
     private String currentFilter = "all";
 
+    //Método para crear la vista
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -51,6 +53,7 @@ public class PedidosFragment extends Fragment {
         loadPedidos();
     }
 
+    //Método para iniciar la vista con sus componentes
     private void initViews(View view) {
         rvPedidos = view.findViewById(R.id.rv_pedidos);
         layoutEmpty = view.findViewById(R.id.layout_empty);
@@ -63,13 +66,14 @@ public class PedidosFragment extends Fragment {
         pedidoService = new PedidoService();
         allPedidos = new ArrayList<>();
     }
-
+    //Establecer el Recycler para optimizar la app
     private void setupRecyclerView() {
         adapter = new PedidosAdapter(new ArrayList<>(), requireContext());
         rvPedidos.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvPedidos.setAdapter(adapter);
     }
 
+    //Establece los filtros, según su estado, con el método filtrar pedidos
     private void setupFilters() {
         chipAll.setOnClickListener(v -> filterPedidos("all"));
         chipPending.setOnClickListener(v -> filterPedidos("pending"));
@@ -77,6 +81,7 @@ public class PedidosFragment extends Fragment {
         chipDelivered.setOnClickListener(v -> filterPedidos("delivered"));
     }
 
+    //Método que carga los pedidos, con ayuda de su servicio (PedidoService)
     private void loadPedidos() {
         showLoading(true);
 
@@ -98,6 +103,7 @@ public class PedidosFragment extends Fragment {
         });
     }
 
+    //Método para filtrar los pedidos segun su estado
     private void filterPedidos(String filter) {
         currentFilter = filter;
         List<Pedido> filteredList = new ArrayList<>();

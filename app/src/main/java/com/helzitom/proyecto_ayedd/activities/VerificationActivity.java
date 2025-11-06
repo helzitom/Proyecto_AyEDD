@@ -10,6 +10,8 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.helzitom.proyecto_ayedd.R;
 
+
+//Clase Principal de la actividad de verificación
 public class VerificationActivity extends AppCompatActivity {
 
     @Override

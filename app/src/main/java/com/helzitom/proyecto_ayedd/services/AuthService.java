@@ -10,6 +10,8 @@ import com.helzitom.proyecto_ayedd.models.User;
 import java.util.HashMap;
 import java.util.Map;
 
+
+//Servicio de autentificación
 public class AuthService {
     private static final String TAG = "AuthService";
     private static final String COLLECTION_USERS = "users";
@@ -137,7 +139,7 @@ public class AuthService {
             return;
         }
 
-        Log.d(TAG, "🔐 Iniciando sesión: " + email);
+        Log.d(TAG, "Iniciando sesión: " + email);
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
@@ -149,7 +151,7 @@ public class AuthService {
                         obtenerTipoUsuario(uid, new UserService.TipoUsuarioCallback() {
                             @Override
                             public void onSuccess(String tipo) {
-                                Log.d(TAG, "✅ Login exitoso - Tipo: " + tipo);
+                                Log.d(TAG, "Login exitoso - Tipo: " + tipo);
                                 callback.onSuccess(uid, email, tipo);
                             }
 
@@ -161,7 +163,7 @@ public class AuthService {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error en login", e);
+                    Log.e(TAG, "Error en inicio de sesión", e);
                     callback.onError(getErrorMessage(e));
                 });
     }

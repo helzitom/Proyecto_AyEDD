@@ -7,16 +7,15 @@ public class ItemPedido implements Serializable {
     private int cantidad;
     private double precioUnitario;
     private double subtotal;
-    private String imagen; // 🆕 o puedes llamarlo "descripcion" si prefieres
+    // 🆕 o puedes llamarlo "descripcion" si prefieres
 
     public ItemPedido() {}
 
-    public ItemPedido(String nombre, int cantidad, double precioUnitario, String imagen) {
+    public ItemPedido(String nombre, int cantidad, double precioUnitario) {
         this.nombre = nombre;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
         this.subtotal = cantidad * precioUnitario;
-        this.imagen = imagen;
     }
 
     // Getters y Setters
@@ -34,12 +33,8 @@ public class ItemPedido implements Serializable {
         this.precioUnitario = precioUnitario;
         calcularSubtotal();
     }
-
     public double getSubtotal() { return subtotal; }
     public void setSubtotal(double subtotal) { this.subtotal = subtotal; }
-
-    public String getImagen() { return imagen; }
-    public void setImagen(String imagen) { this.imagen = imagen; }
 
     private void calcularSubtotal() {
         this.subtotal = this.cantidad * this.precioUnitario;
@@ -52,7 +47,6 @@ public class ItemPedido implements Serializable {
                 ", cantidad=" + cantidad +
                 ", precioUnitario=" + precioUnitario +
                 ", subtotal=" + subtotal +
-                ", imagen='" + imagen + '\'' +
                 '}';
     }
 }

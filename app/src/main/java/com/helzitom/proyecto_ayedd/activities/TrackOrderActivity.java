@@ -22,6 +22,8 @@ import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.models.Pedido;
 import com.helzitom.proyecto_ayedd.services.PedidoService;
 
+
+//Clase principal de la actividad del rastreo del pedido
 public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyCallback {
     private static final String TAG = "TrackOrderActivity";
     public static final String EXTRA_PEDIDO_ID = "pedido_id";
@@ -63,6 +65,7 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
         tvcodigoVerificacion = findViewById(R.id.tv_codigo_verificacion);
     }
 
+    //Se establece el mapa y se llama al fragmento
     private void setupMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map_track_fragment);
@@ -80,6 +83,7 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
         startListeningToPedido();
     }
 
+    //Método par acomenzar a oir el pedido, con ayuda de el servicio (PedidoService)
     private void startListeningToPedido() {
         Log.d(TAG, "👂 Iniciando escucha en tiempo real del pedido: " + pedidoId);
 
@@ -100,6 +104,7 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
         });
     }
 
+    //Método par actualizar la vista del usuario con los datos del pedido
     private void updateUI(Pedido pedido) {
         // Actualizar información
         tvEstado.setText(getEstadoText(pedido.getEstado()));
@@ -114,6 +119,7 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
         tvcodigoVerificacion.setText("💨 Codigo de Verificación: " + pedido.getCodigoVerificacion());
     }
 
+    //Actualizacón del mapa
     private void updateMap(Pedido pedido) {
         if (mMap == null) return;
 
@@ -136,7 +142,7 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
         boundsBuilder.include(destino);
 
-        // CORREGIDO: Verificar coordenadas del repartidor independientemente del estado
+        // Verificar coordenadas del repartidor independientemente del estado
         // Las coordenadas válidas deben ser diferentes de 0
         double latRepartidor = pedido.getLatitudRepartidor();
         double lngRepartidor = pedido.getLongitudRepartidor();
@@ -177,6 +183,8 @@ public class TrackOrderActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
+
+    //Método para obtener el estado del pedido
     private String getEstadoText(String estado) {
         switch (estado) {
             case "pendiente": return "⏳ Pendiente";

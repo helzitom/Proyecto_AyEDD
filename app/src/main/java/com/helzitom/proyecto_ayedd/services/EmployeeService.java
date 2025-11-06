@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//Servicio para el manejo de empleados en el sistema
 public class EmployeeService {
     private static final String TAG = "EmployeeService";
     private static final String COLLECTION_USERS = "users";
@@ -34,7 +35,7 @@ public class EmployeeService {
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         User employee = document.toObject(User.class);
 
-                        // 🔥 Asignar el ID del documento al campo userId
+                        // Asignar el ID del documento al campo userId
                         employee.setUserId(document.getId());
 
                         employees.add(employee);
@@ -49,7 +50,7 @@ public class EmployeeService {
 
     }
 
-    // Crear empleado
+    // Método para crear empleado
     public void crearEmpleado(String email, String password, String name, String lastname,
                               String username, String type, CreateEmployeeCallback callback) {
         Log.d(TAG, "📝 Creando empleado: " + email);
@@ -88,10 +89,10 @@ public class EmployeeService {
                 });
     }
 
-    // Actualizar empleado
+    //Método para actualizar empleado
     public void actualizarEmpleado(String uid, String name, String lastname,
                                    String username, String type, UpdateCallback callback) {
-        Log.d(TAG, "📝 Actualizando empleado: " + uid);
+        Log.d(TAG, "Actualizando empleado: " + uid);
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", name);
@@ -103,19 +104,19 @@ public class EmployeeService {
                 .document(uid)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Empleado actualizado");
+                    Log.d(TAG, "Empleado actualizado");
                     callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error actualizando empleado", e);
+                    Log.e(TAG, "Error actualizando empleado", e);
                     callback.onError(e.getMessage());
                 });
     }
 
-    // Eliminar empleado
+    // Método para eliminar empleado
     public void eliminarEmpleado(String uid, DeleteCallback callback) {
         if (uid == null || uid.isEmpty()) {
-            Log.e(TAG, "❌ UID del empleado es nulo o vacío");
+            Log.e(TAG, "UID del empleado es nulo o vacío");
             callback.onError("UID inválido");
             return;
         }
@@ -124,16 +125,16 @@ public class EmployeeService {
                 .document(uid)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Empleado eliminado de Firestore");
+                    Log.d(TAG, "Empleado eliminado de Firestore");
                     callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error eliminando empleado", e);
+                    Log.e(TAG, "Error eliminando empleado", e);
                     callback.onError(e.getMessage());
                 });
     }
 
-
+    //Métrodos para obtener excepciones y convertirlas a español
     private String getErrorMessage(Exception e) {
         String message = e.getMessage();
         if (message.contains("email address is already in use")) {
@@ -146,6 +147,7 @@ public class EmployeeService {
         return "Error: " + message;
     }
 
+    //Interfaces
     public interface EmployeesListCallback {
         void onSuccess(List<User> employees);
         void onError(String error);

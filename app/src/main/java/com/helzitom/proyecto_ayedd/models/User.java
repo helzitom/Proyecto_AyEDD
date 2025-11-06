@@ -1,7 +1,6 @@
 package com.helzitom.proyecto_ayedd.models;
 
-import org.checkerframework.framework.qual.JavaExpression;
-
+//Clase de usuario
 public class User implements java.io.Serializable{
     private String userId;
     private String name;

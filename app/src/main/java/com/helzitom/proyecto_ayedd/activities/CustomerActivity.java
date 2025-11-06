@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+//Clase principal de la actividad del cliente
 public class CustomerActivity extends AppCompatActivity {
 
     private Toolbar toolbar;

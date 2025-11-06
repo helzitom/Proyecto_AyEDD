@@ -151,12 +151,12 @@ public class CustomerPedidosAdapter extends RecyclerView.Adapter<CustomerPedidos
         }
     }
 
-    // 🔹 Interfaz para manejar eventos
+    // Interfaz para manejar eventos
     public interface OnPedidoClickListener {
         void onVerEnTiempoRealClick(Pedido pedido);
     }
 
-    // 🧱 ViewHolder interno
+    // ViewHolder interno
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvPedidoId, tvDireccion, tvFecha, tvTotal, chipEstado;
         Button btnVerSeguimiento;

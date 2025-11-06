@@ -32,8 +32,7 @@ public class DeliveryActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private RecyclerView rvPedidos;
     private LinearLayout layoutEmpty;
-    private TextView tvDeliveryStatus, tvPedidosHoy;
-    private SwitchMaterial switchAvailable;
+    private TextView tvPedidosHoy;
     private FloatingActionButton fabLogout;
 
     private DeliveryPedidosAdapter adapter;
@@ -54,7 +53,6 @@ public class DeliveryActivity extends AppCompatActivity {
         setupToolbar();
         setupRecyclerView();
         setupSwipeRefresh();
-        setupListeners();
         loadPedidos();
     }
 
@@ -63,11 +61,13 @@ public class DeliveryActivity extends AppCompatActivity {
         swipeRefresh = findViewById(R.id.swipe_refresh);
         rvPedidos = findViewById(R.id.rv_delivery_orders);
         layoutEmpty = findViewById(R.id.layout_empty_delivery);
-        tvDeliveryStatus = findViewById(R.id.tv_delivery_status);
         tvPedidosHoy = findViewById(R.id.tv_pedidos_hoy);
-
-        switchAvailable = findViewById(R.id.switch_available);
         fabLogout = findViewById(R.id.fab_logout);
+
+        fabLogout.setOnClickListener(v -> {
+            Toast.makeText(this, "Cerrando sesión...", Toast.LENGTH_SHORT).show();
+            logout();
+        });
     }
 
     private void setupToolbar() {
@@ -111,21 +111,6 @@ public class DeliveryActivity extends AppCompatActivity {
         });
     }
 
-    private void setupListeners() {
-        switchAvailable.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            isAvailable = isChecked;
-            tvDeliveryStatus.setText(isChecked ? "Disponible" : "No Disponible");
-
-            if (!isChecked) {
-                Toast.makeText(this, "Te has marcado como no disponible", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Ahora estás disponible para pedidos", Toast.LENGTH_SHORT).show();
-                loadPedidos();
-            }
-        });
-
-        fabLogout.setOnClickListener(v -> logout());
-    }
 
     private void loadPedidos() {
         String repartidorId = authService.getCurrentUserId();

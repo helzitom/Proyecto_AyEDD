@@ -1,16 +1,14 @@
 package com.helzitom.proyecto_ayedd.models;
 
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.PropertyName;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+//Clase de pedido
 public class Pedido implements Serializable {
 
     private String id;
-
 
     private String codigoPedido;
 
@@ -64,9 +62,7 @@ public class Pedido implements Serializable {
     // Constructor vacío requerido por Firestore
     public Pedido() {}
 
-    // ======================
-    // 🔹 GETTERS Y SETTERS
-    // ======================
+    // GETTERS Y SETTERS
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

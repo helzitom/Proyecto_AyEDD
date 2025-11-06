@@ -16,13 +16,15 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+
+//Servicio para el manejo de email
 public class EmailService {
 
     private static final String TAG = "EmailService";
     private final ExecutorService executorService;
     private final Handler mainHandler;
 
-    // Configuración del email (REEMPLAZA CON TUS DATOS)
+    // Configuración del email el cuál enviará correos a cuentas, recuperación de contraseña, etc
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final String SMTP_PORT = "587";
     private static final String EMAIL_FROM = "margarita100101010@gmail.com";
@@ -37,6 +39,7 @@ public class EmailService {
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    //Método para enviar email de verificación
     public void sendVerificationEmail(String toEmail, String userName,
                                       String verificationCode, EmailCallback callback) {
         executorService.execute(() -> {
@@ -45,6 +48,7 @@ public class EmailService {
         });
     }
 
+    //Método para enviar email
     private boolean sendEmail(String toEmail, String userName, String verificationCode) {
         try {
             // Configurar propiedades
@@ -55,7 +59,7 @@ public class EmailService {
             props.put("mail.smtp.port", SMTP_PORT);
             props.put("mail.smtp.ssl.trust", SMTP_HOST);
 
-            // Crear sesión
+            // Crear sesión (Autentificacón)
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -72,7 +76,7 @@ public class EmailService {
             String htmlContent = buildEmailContent(userName, verificationCode);
             message.setContent(htmlContent, "text/html; charset=utf-8");
 
-            // Enviar
+            // Envio
             Transport.send(message);
             Log.d(TAG, "Email enviado exitosamente a " + toEmail);
             return true;
@@ -83,6 +87,7 @@ public class EmailService {
         }
     }
 
+    //Método que contiene el formato del correo de verificación de cuenta
     private String buildEmailContent(String userName, String verificationCode) {
         return "<!DOCTYPE html>" +
                 "<html>" +
@@ -109,7 +114,4 @@ public class EmailService {
                 "</html>";
     }
 
-    public void shutdown() {
-        executorService.shutdown();
-    }
 }

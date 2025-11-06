@@ -18,7 +18,10 @@ import com.helzitom.proyecto_ayedd.models.User;
 import com.helzitom.proyecto_ayedd.services.EmployeeService;
 
 import java.io.Serializable;
-
+/**
+ * Clase que muestra un cuadro de diálogo personalizado para editar el empleado
+ * Permite al administrador cambiar lo que desee del empleado, menos su correo electrónico
+ */
 public class EditEmployeeDialog extends DialogFragment {
 
     private static final String ARG_EMPLOYEE = "employee";

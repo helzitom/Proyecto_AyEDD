@@ -19,12 +19,16 @@ import com.helzitom.proyecto_ayedd.services.EmployeeService;
 
 import java.util.List;
 
+//Adaptador para mostrar y gestionar una lista de empleados en un RecyclerView.
+//Permite editar o eliminar empleados mediante botones y muestra la información básica de cada uno.
 public class EmployeesAdapter extends RecyclerView.Adapter<EmployeesAdapter.EmployeeViewHolder> {
 
+    //Lista de empleados
     private List<User> employees;
     private Context context;
     private OnEmployeeChangedListener listener;
 
+    //Interfaz que permite recargar los empleados cuando ocurre un cambio (edición o eliminación)
     public interface OnEmployeeChangedListener {
         void loadEmployees();
     }
@@ -35,6 +39,8 @@ public class EmployeesAdapter extends RecyclerView.Adapter<EmployeesAdapter.Empl
         this.listener = listener;
     }
 
+
+    //Crea un nuevo ViewHolder inflando el layout de un elemento de la lista
     @NonNull
     @Override
     public EmployeeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -49,22 +55,28 @@ public class EmployeesAdapter extends RecyclerView.Adapter<EmployeesAdapter.Empl
         holder.bind(employee);
     }
 
+    //Devuelve la cantidad total de empleados a mostrar.
     @Override
     public int getItemCount() {
         return employees.size();
     }
 
+    //Actualiza la lista de empleados y notifica al adaptador que los datos cambiaron
     public void updateList(List<User> newEmployees) {
         this.employees = newEmployees;
         notifyDataSetChanged();
     }
 
+
+    //Clase interna que representa el ViewHolder de cada empleado
     class EmployeeViewHolder extends RecyclerView.ViewHolder {
         TextView tvAvatar, tvName, tvEmail, tvUsername;
         Chip chipType;
         Button btnEdit, btnDelete;
         EmployeeService employeeService;
 
+
+        //Constructor del ViewHolder que inicializa las vistas y el servicio de empleados
         EmployeeViewHolder(@NonNull View itemView) {
             super(itemView);
             tvAvatar = itemView.findViewById(R.id.tv_avatar);
@@ -77,6 +89,9 @@ public class EmployeesAdapter extends RecyclerView.Adapter<EmployeesAdapter.Empl
             employeeService = new EmployeeService();
         }
 
+
+        //Asigna los datos de un empleado a las vistas del item
+         //También configura los botones para editar o eliminar empleados
         void bind(User employee) {
             // Avatar con inicial
             String name = employee.getName() != null ? employee.getName() : "?";
@@ -113,6 +128,7 @@ public class EmployeesAdapter extends RecyclerView.Adapter<EmployeesAdapter.Empl
             btnDelete.setOnClickListener(v -> showDeleteConfirmation(employee));
         }
 
+        //Muestra un diálogo de confirmación antes de eliminar un empleado
         private void showDeleteConfirmation(User employee) {
             new AlertDialog.Builder(context)
                     .setTitle("Eliminar Empleado")
@@ -122,6 +138,7 @@ public class EmployeesAdapter extends RecyclerView.Adapter<EmployeesAdapter.Empl
                     .show();
         }
 
+        //Llama al servicio para eliminar el empleado y actualiza la lista al completarse
         private void deleteEmployee(User employee) {
             employeeService.eliminarEmpleado(employee.getUserId(), new EmployeeService.DeleteCallback() {
                 @Override

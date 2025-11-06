@@ -22,6 +22,7 @@ import com.helzitom.proyecto_ayedd.services.EmployeeService;
 import java.util.ArrayList;
 import java.util.List;
 
+//Clase para el uso del fragmento de empleados
 public class EmployeesFragment extends Fragment {
     private static final String TAG = "EmployeesFragment";
 
@@ -35,12 +36,14 @@ public class EmployeesFragment extends Fragment {
     private List<User> allEmployees;
     private String currentFilter = "all";
 
+    //Creación de la vista
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.activity_fragment_employees_list, container, false);
     }
 
+    //Carga de componentes y empleados en el fragmento
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -51,6 +54,7 @@ public class EmployeesFragment extends Fragment {
         loadEmployees();
     }
 
+    //Inicialización de los componentes del fragmento
     private void initViews(View view) {
         rvEmployees = view.findViewById(R.id.rv_employees);
         layoutEmpty = view.findViewById(R.id.layout_empty_employees);
@@ -63,11 +67,13 @@ public class EmployeesFragment extends Fragment {
         allEmployees = new ArrayList<>();
     }
 
+    //RecyclerView para optimizar y reducir cargas
     private void setupRecyclerView() {
         adapter = new EmployeesAdapter(new ArrayList<>(), requireContext(), this::refreshEmployees);
         rvEmployees.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvEmployees.setAdapter(adapter);
     }
+
 
     private void setupFilters() {
         chipAllEmployees.setOnClickListener(v -> filterEmployees("all"));
@@ -75,13 +81,14 @@ public class EmployeesFragment extends Fragment {
         chipReceiver.setOnClickListener(v -> filterEmployees("receiver"));
     }
 
+    //Método para cargar empleados, con ayuda de su servicio (EmpleadaoService)
     public void loadEmployees() {
         showLoading(true);
 
         employeeService.obtenerTodosEmpleados(new EmployeeService.EmployeesListCallback() {
             @Override
             public void onSuccess(List<User> employees) {
-                Log.d(TAG, "✅ Empleados cargados: " + employees.size());
+                Log.d(TAG, "Empleados cargados: " + employees.size());
                 allEmployees = employees;
                 filterEmployees(currentFilter);
                 showLoading(false);
@@ -89,7 +96,7 @@ public class EmployeesFragment extends Fragment {
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "❌ Error: " + error);
+                Log.e(TAG, "Error: " + error);
                 showEmpty(true);
                 showLoading(false);
             }
@@ -135,4 +142,9 @@ public class EmployeesFragment extends Fragment {
         layoutEmpty.setVisibility(show ? View.VISIBLE : View.GONE);
         rvEmployees.setVisibility(show ? View.GONE : View.VISIBLE);
     }
+
+    public void reloadEmployees() {
+        loadEmployees(); // o el método que ya tengas para cargarlos
+    }
+
 }

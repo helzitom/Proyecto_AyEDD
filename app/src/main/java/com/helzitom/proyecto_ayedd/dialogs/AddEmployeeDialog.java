@@ -16,12 +16,25 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.services.EmployeeService;
 
+//Clase el cuadro de diálogo al crear nuevo empleado
 public class AddEmployeeDialog extends DialogFragment {
 
     private TextInputEditText etName, etLastname, etUsername, etEmail, etPassword;
     private RadioGroup rgType;
     private Button btnCancel, btnSave;
     private EmployeeService employeeService;
+
+    // 🔹 Interfaz para notificar que se añadió un empleado
+    public interface OnEmployeeAddedListener {
+        void onEmployeeAdded();
+    }
+
+    private OnEmployeeAddedListener listener;
+
+    // 🔹 Setter para asignar el listener desde AdminActivity
+    public void setOnEmployeeAddedListener(OnEmployeeAddedListener listener) {
+        this.listener = listener;
+    }
 
     @NonNull
     @Override
@@ -62,7 +75,6 @@ public class AddEmployeeDialog extends DialogFragment {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // Validaciones
         if (name.isEmpty() || lastname.isEmpty() || username.isEmpty() ||
                 email.isEmpty() || password.isEmpty()) {
             Toast.makeText(requireContext(), "Completa todos los campos", Toast.LENGTH_SHORT).show();
@@ -74,7 +86,6 @@ public class AddEmployeeDialog extends DialogFragment {
             return;
         }
 
-        // Obtener tipo seleccionado
         int selectedId = rgType.getCheckedRadioButtonId();
         String type;
         if (selectedId == R.id.rb_delivery) {
@@ -86,22 +97,23 @@ public class AddEmployeeDialog extends DialogFragment {
             return;
         }
 
-        // Deshabilitar botón mientras se crea
         btnSave.setEnabled(false);
         btnSave.setText("Creando...");
 
-        // Crear empleado
         employeeService.crearEmpleado(email, password, name, lastname, username, type,
                 new EmployeeService.CreateEmployeeCallback() {
                     @Override
                     public void onSuccess() {
                         Toast.makeText(requireContext(), "Empleado creado exitosamente", Toast.LENGTH_SHORT).show();
 
+                        // 🔥 Notificar al AdminActivity
                         if (listener != null) {
                             listener.onEmployeeAdded();
                         }
+
                         dismiss();
                     }
+
                     @Override
                     public void onError(String error) {
                         Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
@@ -110,15 +122,4 @@ public class AddEmployeeDialog extends DialogFragment {
                     }
                 });
     }
-
-    public interface OnEmployeeAddedListener {
-        void onEmployeeAdded();
-    }
-
-    private OnEmployeeAddedListener listener;
-
-    public void setOnEmployeeAddedListener(OnEmployeeAddedListener listener) {
-        this.listener = listener;
-    }
-
 }

@@ -21,6 +21,9 @@ import com.helzitom.proyecto_ayedd.models.Pedido;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+/**
+ * Clase que muestra un cuadro de diálogo personalizado del pedido
+ */
 public class PedidoDetailsDialog extends DialogFragment {
 
     private static final String ARG_PEDIDO = "pedido";
@@ -61,6 +64,7 @@ public class PedidoDetailsDialog extends DialogFragment {
         return builder.create();
     }
 
+    //Método que inicializa la vista u los componentes
     private void initViews(View view) {
         tvPedidoId = view.findViewById(R.id.tv_dialog_pedido_id);
         chipEstado = view.findViewById(R.id.chip_dialog_estado);
@@ -78,6 +82,7 @@ public class PedidoDetailsDialog extends DialogFragment {
         btnVerMapa = view.findViewById(R.id.btn_dialog_ver_mapa);
     }
 
+    //Método que establece los detalles del pedido (Cliente, Dirección, Items, Resumen(subtotal), Fecha y repartidor)
     private void fillPedidoData() {
         if (pedido == null) return;
 
@@ -127,6 +132,7 @@ public class PedidoDetailsDialog extends DialogFragment {
         });
     }
 
+    //Método para obtener el estado del pedido
     private String getEstadoText(String estado) {
         switch (estado) {
             case "pendiente": return "Pendiente";

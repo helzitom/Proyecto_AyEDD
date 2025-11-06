@@ -11,6 +11,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.helzitom.proyecto_ayedd.R;
 
+//Clase para la creación del layout del fragmento de  pedidos
 public class fragment_pedidos_list extends AppCompatActivity {
 
     @SuppressLint("MissingInflatedId")

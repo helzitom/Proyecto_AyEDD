@@ -13,6 +13,7 @@ import com.helzitom.proyecto_ayedd.models.ItemPedido;
 import java.util.List;
 import java.util.Locale;
 
+
 public class PedidoItemsAdapter extends RecyclerView.Adapter<PedidoItemsAdapter.ItemViewHolder> {
 
     private List<ItemPedido> items;
