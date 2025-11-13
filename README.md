@@ -29,7 +29,7 @@ cd pedidos-app
 1. Obtener API key en [Google Cloud Console](https://console.cloud.google.com/)
 2. Crear archivo \`secrets.properties\` en la raíz:
    \`\`\`
-   GOOGLE_MAPS_API_KEY=tu_clave_aqui
+   GOOGLE_MAPS_API_KEY=XXXXXXXXX
    \`\`\`
 
 ### 4. Compilar
