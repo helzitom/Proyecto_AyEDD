@@ -1,10 +1,12 @@
 package com.helzitom.proyecto_ayedd.activities;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -23,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.adapters.CustomerPedidosAdapter;
@@ -35,12 +38,14 @@ import com.helzitom.proyecto_ayedd.services.UserService;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
 
 //Clase principal de la actividad del cliente
 public class CustomerActivity extends AppCompatActivity {
 
     private UserService userService;
 
+    private ListenerRegistration pedidosListener;
     private Toolbar toolbar;
     private FloatingActionButton fabLogout;
     private RecyclerView rvPedidos;
@@ -63,6 +68,7 @@ public class CustomerActivity extends AppCompatActivity {
         // Inicialización de servicios y Firebase
         pedidoService = new PedidoService();
         authService = new AuthService();
+        userService = new UserService(); // 🔹 Mover aquí antes de cargar datos
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
@@ -105,28 +111,39 @@ public class CustomerActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
-
-        userService = new UserService();
     }
 
     // CARGAR DATOS DEL USUARIO
     private void cargarDatosUsuario() {
         String userId = authService.getCurrentUserId();
+
         if (userId == null) {
-            Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
+            mostrarError("Usuario no autenticado");
             return;
         }
 
-        userService.getUserById(userId, user -> {
-            if (user != null) {
-                updateUI(user);
-                cambiarColorToolbar(user.getType());
-            }
-        }, e -> {
-            Log.e("CustomerActivity", "Error al cargar usuario", e);
-            Toast.makeText(this, "Error al cargar datos del usuario", Toast.LENGTH_SHORT).show();
-        });
+        userService.getUserById(
+                userId,
+                user -> {
+                    if (user == null) {
+                        mostrarError("Datos de usuario no encontrados");
+                        return;
+                    }
+
+                    updateUI(user);
+                    cambiarColorToolbar(user.getType());
+                },
+                error -> {
+                    Log.e("CustomerActivity", "Error al cargar usuario: " + error);
+                    mostrarError("Error al cargar datos del usuario");
+                }
+        );
     }
+
+    private void mostrarError(String mensaje) {
+        Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
+    }
+
 
     // ACTUALIZAR UI CON DATOS DEL USUARIO
     private void updateUI(User user) {
@@ -147,22 +164,39 @@ public class CustomerActivity extends AppCompatActivity {
     // PEDIDOS EN TIEMPO REAL
     private void escucharPedidosEnTiempoReal() {
         String userId = authService.getCurrentUserId();
-        db.collection("pedidos")
+
+        if (userId == null) {
+            Log.e("CustomerActivity", "Error: userId es null");
+            return;
+        }
+
+        // Evitar crear múltiples listeners
+        if (pedidosListener != null) {
+            pedidosListener.remove();
+        }
+
+        pedidosListener = db.collection("pedidos")
                 .whereEqualTo("clienteId", userId)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
-                        Log.e("CustomerActivity", "Error escuchando pedidos", error);
+                        Log.e("CustomerActivity", "Error escuchando pedidos: ", error);
                         return;
                     }
-                    if (value != null) {
-                        pedidoList.clear();
-                        for (QueryDocumentSnapshot doc : value) {
-                            Pedido pedido = doc.toObject(Pedido.class);
-                            pedido.setId(doc.getId());
-                            pedidoList.add(pedido);
-                        }
-                        adapter.notifyDataSetChanged();
+
+                    if (value == null) {
+                        Log.w("CustomerActivity", "Snapshot null en pedidos");
+                        return;
                     }
+
+                    pedidoList.clear();
+                    for (QueryDocumentSnapshot doc : value) {
+                        Pedido pedido = doc.toObject(Pedido.class);
+                        pedido.setId(doc.getId());
+                        pedidoList.add(pedido);
+                    }
+
+                    adapter.notifyDataSetChanged();
+
                 });
     }
 
@@ -225,20 +259,39 @@ public class CustomerActivity extends AppCompatActivity {
         final EditText input = new EditText(this);
         input.setHint("Ej: AbC123XYZ");
         input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setPadding(50, 30, 50, 30);
+
         builder.setView(input);
 
-        builder.setPositiveButton("Aceptar", (dialog, which) -> {
-            String codigoPedido = input.getText().toString().trim();
-            if (codigoPedido.isEmpty()) {
-                Toast.makeText(this, "⚠️ Ingresa un ID válido", Toast.LENGTH_SHORT).show();
-            } else {
-                asignarPedidoAlUsuario(codigoPedido);
+        // Botón aceptar sin lambda
+        builder.setPositiveButton("Aceptar", null);
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
             }
         });
 
-        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.cancel());
-        builder.show();
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String codigoPedido = input.getText().toString().trim();
+
+                if (codigoPedido.isEmpty()) {
+                    input.setError("Ingrese un código válido");
+                    return;
+                }
+
+                asignarPedidoAlUsuario(codigoPedido);
+                dialog.dismiss();
+            }
+        });
     }
+
 
     private void asignarPedidoAlUsuario(String codigoPedido) {
         String userId = authService.getCurrentUserId();
@@ -248,9 +301,20 @@ public class CustomerActivity extends AppCompatActivity {
         }
 
         userService.asignarPedidoAlUsuario(userId, codigoPedido,
-                () -> Toast.makeText(this, "✅ Pedido asignado correctamente", Toast.LENGTH_SHORT).show(),
-                errorMsg -> Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(CustomerActivity.this, "✅ Pedido asignado correctamente", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                new Consumer<String>() {
+                    @Override
+                    public void accept(String errorMsg) {
+                        Toast.makeText(CustomerActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                }
         );
     }
+
 
 }

@@ -4,8 +4,10 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Toast;
@@ -22,7 +24,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.models.ItemPedido;
 import com.helzitom.proyecto_ayedd.models.Pedido;
@@ -116,31 +121,39 @@ public class CreateOrderActivity extends AppCompatActivity implements OnMapReady
             enableMyLocation();
         }
 
-        // Cámara inicial
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(DEFAULT_LOCATION, 12));
 
-        // Detectar clic en mapa
-        mMap.setOnMapClickListener(latLng -> {
-            selectedLocation = latLng;
-            mMap.clear();
-            mMap.addMarker(new MarkerOptions().position(latLng).title("Ubicación de entrega"));
-            getAddressFromLocation(latLng);
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                selectedLocation = latLng;
+                mMap.clear();
+                mMap.addMarker(new MarkerOptions().position(latLng).title("Ubicación de entrega"));
+                getAddressFromLocation(latLng);
+            }
         });
     }
+
 
     private void enableMyLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+
             mMap.setMyLocationEnabled(true);
+
             fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(location -> {
-                        if (location != null) {
-                            LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+                    .addOnSuccessListener(new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            if (location != null) {
+                                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+                            }
                         }
                     });
         }
     }
+
 
     private void getAddressFromLocation(LatLng latLng) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
@@ -157,41 +170,62 @@ public class CreateOrderActivity extends AppCompatActivity implements OnMapReady
     }
 
     private void setupListeners() {
-        btnSelectLocation.setOnClickListener(v ->
-                Toast.makeText(this, "📍 Toca el mapa para seleccionar la ubicación de entrega", Toast.LENGTH_LONG).show()
-        );
+        btnSelectLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(CreateOrderActivity.this,
+                        "📍 Toca el mapa para seleccionar la ubicación de entrega",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
 
-        btnCreateOrder.setOnClickListener(v -> createOrder());
+        btnCreateOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createOrder();
+            }
+        });
     }
+
 
     private void cargarRepartidoresDesdeFirebase() {
         db.collection("users")
                 .whereEqualTo("type", "delivery")
                 .get()
-                .addOnSuccessListener(query -> {
-                    listaRepartidores.clear();
-                    listaRepartidorUID.clear();
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot query) {
+                        listaRepartidores.clear();
+                        listaRepartidorUID.clear();
 
-                    for (QueryDocumentSnapshot doc : query) {
-                        String nombre = doc.getString("name");
-                        String uid = doc.getId();
-                        if (nombre != null) {
-                            listaRepartidores.add(nombre);
-                            listaRepartidorUID.add(uid);
+                        for (QueryDocumentSnapshot doc : query) {
+                            String nombre = doc.getString("name");
+                            String uid = doc.getId();
+                            if (nombre != null) {
+                                listaRepartidores.add(nombre);
+                                listaRepartidorUID.add(uid);
+                            }
+                        }
+                        adapterRepartidor.notifyDataSetChanged();
+
+                        if (listaRepartidores.isEmpty()) {
+                            Toast.makeText(CreateOrderActivity.this,
+                                    "No hay repartidores disponibles",
+                                    Toast.LENGTH_LONG).show();
                         }
                     }
-                    adapterRepartidor.notifyDataSetChanged();
-
-                    // Mostrar mensaje si no hay repartidores
-                    if (listaRepartidores.isEmpty()) {
-                        Toast.makeText(this, "No hay repartidores disponibles", Toast.LENGTH_LONG).show();
-                    }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al cargar repartidores: " + e.getMessage());
-                    Toast.makeText(this, "Error al cargar repartidores: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.e(TAG, "Error al cargar repartidores: " + e.getMessage());
+                        Toast.makeText(CreateOrderActivity.this,
+                                "Error al cargar repartidores: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
+
 
     private void createOrder() {
         String nombre = etClienteNombre.getText().toString().trim();
@@ -280,33 +314,33 @@ public class CreateOrderActivity extends AppCompatActivity implements OnMapReady
         pedidoService.crearPedido(pedido, new PedidoService.PedidoCallback() {
             @Override
             public void onSuccess(String pedidoId) {
-                runOnUiThread(() -> {
-                    Toast.makeText(CreateOrderActivity.this, "Pedido creado exitosamente", Toast.LENGTH_SHORT).show();
-
-                    // 🔹 IMPORTANTE: Establecer resultado de éxito antes de cerrar
-                    setResult(RESULT_OK);
-                    finish();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(CreateOrderActivity.this, "Pedido creado exitosamente", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
+                        finish();
+                    }
                 });
             }
 
             @Override
             public void onError(String error) {
-                runOnUiThread(() -> {
-                    Log.e(TAG, "Error al crear pedido: " + error);
-                    Toast.makeText(CreateOrderActivity.this, "Error al crear pedido: " + error, Toast.LENGTH_LONG).show();
-
-                    // Rehabilitar botón
-                    btnCreateOrder.setEnabled(true);
-                    btnCreateOrder.setText("Crear Pedido");
-
-                    // 🔹 Establecer resultado de error
-                    setResult(RESULT_CANCELED);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.e(TAG, "Error al crear pedido: " + error);
+                        Toast.makeText(CreateOrderActivity.this, "Error al crear pedido: " + error, Toast.LENGTH_LONG).show();
+                        btnCreateOrder.setEnabled(true);
+                        btnCreateOrder.setText("Crear Pedido");
+                        setResult(RESULT_CANCELED);
+                    }
                 });
             }
         });
     }
 
-    // 🔹 Manejar el botón de retroceso
+    // Manejar el botón de retroceso
     @Override
     public void onBackPressed() {
         // Establecer resultado cancelado cuando el usuario presiona back

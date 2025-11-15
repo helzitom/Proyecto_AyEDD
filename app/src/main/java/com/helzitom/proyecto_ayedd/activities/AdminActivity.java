@@ -88,18 +88,20 @@ public class AdminActivity extends AppCompatActivity implements NavigationView.O
         pagerAdapter = new AdminPagerAdapter(this);
         viewPager.setAdapter(pagerAdapter);
 
-        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
-            switch (position) {
-                case 0:
-                    tab.setText("Pedidos");
-                    break;
-                case 1:
-                    tab.setText("Empleados");
-                    break;
+        new TabLayoutMediator(tabLayout, viewPager, new TabLayoutMediator.TabConfigurationStrategy() {
+            @Override
+            public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
+                switch (position) {
+                    case 0:
+                        tab.setText("Pedidos");
+                        break;
+                    case 1:
+                        tab.setText("Empleados");
+                        break;
+                }
             }
         }).attach();
 
-        // Cambiar icono del FAB según la pestaña
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -108,6 +110,7 @@ public class AdminActivity extends AppCompatActivity implements NavigationView.O
             }
         });
     }
+
 
     private void setupFab() {
         fab.setOnClickListener(v -> {

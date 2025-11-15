@@ -112,19 +112,31 @@ public class VerificationCodeDialog extends Dialog {
      * Habilita el botón "Verificar" solo cuando hay 6 dígitos.
      */
     private void setupListeners() {
+
         // Botón para verificar el código ingresado
-        btnVerify.setOnClickListener(v -> verifyCode());
+        btnVerify.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                verifyCode();
+            }
+        });
 
         // Botón para cancelar y cerrar el diálogo
-        btnCancel.setOnClickListener(v -> {
-            listener.onVerificationFailed();
-            dismiss();
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.onVerificationFailed();
+                dismiss();
+            }
         });
 
         // Texto para reenviar el código
-        tvResend.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Código reenviado", Toast.LENGTH_SHORT).show();
-            attemptsLeft = 3; // Reinicia los intentos
+        tvResend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getContext(), "Código reenviado", Toast.LENGTH_SHORT).show();
+                attemptsLeft = 3; // Reinicia los intentos
+            }
         });
 
         // Verifica si el usuario ha ingresado los 6 dígitos
@@ -134,7 +146,6 @@ public class VerificationCodeDialog extends Dialog {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Habilitar el botón solo si hay 6 dígitos
                 btnVerify.setEnabled(s.length() == 6);
             }
 
@@ -142,6 +153,7 @@ public class VerificationCodeDialog extends Dialog {
             public void afterTextChanged(Editable s) {}
         });
     }
+
 
     /**
      * Verifica si el código ingresado por el usuario coincide con el código correcto.

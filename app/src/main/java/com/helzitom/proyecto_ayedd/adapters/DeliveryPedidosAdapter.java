@@ -47,16 +47,19 @@ public class DeliveryPedidosAdapter extends RecyclerView.Adapter<DeliveryPedidos
         holder.tvTelefono.setText("📞 " + safe(pedido.getClienteTelefono()));
         holder.tvTotal.setText("💰 S/ " + pedido.getTotal());
 
-        // Botones funcionales
-
-        holder.btnIniciar.setOnClickListener(v -> {
-            if (listener != null && pedido.getId() != null) {
-                listener.onIniciarClick(pedido.getId());
-            } else {
-                Toast.makeText(context, "⚠️ Pedido sin ID válido", Toast.LENGTH_SHORT).show();
+        // Botones funcionales sin lambda
+        holder.btnIniciar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null && pedido.getId() != null) {
+                    listener.onIniciarClick(pedido.getId());
+                } else {
+                    Toast.makeText(context, "⚠️ Pedido sin ID válido", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
+
 
     @Override
     public int getItemCount() {
@@ -73,6 +76,7 @@ public class DeliveryPedidosAdapter extends RecyclerView.Adapter<DeliveryPedidos
     // 🎯 Interfaz para eventos
     public interface OnPedidoClickListener {
         void onVerMapaClick(Pedido pedido);
+
         void onIniciarClick(String pedidoId);
     }
 

@@ -3,12 +3,18 @@ package com.helzitom.proyecto_ayedd.services;
 import android.content.Context;
 import android.util.Log;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.helzitom.proyecto_ayedd.adapters.PedidosAdapter;
 import com.helzitom.proyecto_ayedd.models.Pedido;
@@ -41,7 +47,7 @@ public class PedidoService {
     }
 
     //Método para crear pedido
-    public void crearPedido(Pedido pedido, PedidoCallback callback) {
+    public void crearPedido(final Pedido pedido, final PedidoCallback callback) {
         Log.d(TAG, "📝 Creando pedido");
 
         pedido.setEstado("pendiente");
@@ -52,21 +58,28 @@ public class PedidoService {
 
         db.collection(COLLECTION_PEDIDOS)
                 .add(pedidoData)
-                .addOnSuccessListener(documentReference -> {
-                    String pedidoId = documentReference.getId();
-                    pedido.setId(pedidoId);
-                    Log.d(TAG, "✅ Pedido creado: " + pedidoId);
-                    callback.onSuccess(pedidoId);
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        String pedidoId = documentReference.getId();
+                        pedido.setId(pedidoId);
+                        Log.d(TAG, "Pedido creado: " + pedidoId);
+                        callback.onSuccess(pedidoId);
+                    }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error creando pedido", e);
-                    callback.onError(e.getMessage());
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Error creando pedido", e);
+                        callback.onError(e.getMessage());
+                    }
                 });
     }
 
+
     // Método usado al iniciar la ruta
 
-    public void iniciarRuta(String pedidoId, double latInicial, double lngInicial, UpdateCallback callback) {
+    public void iniciarRuta(String pedidoId, double latInicial, double lngInicial, final UpdateCallback callback) {
         Log.d(TAG, "🚀 Iniciando ruta del pedido: " + pedidoId);
 
         Map<String, Object> updates = new HashMap<>();
@@ -79,19 +92,26 @@ public class PedidoService {
 
         db.collection(COLLECTION_PEDIDOS).document(pedidoId)
                 .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Ruta iniciada");
-                    callback.onSuccess();
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d(TAG, "Ruta iniciada");
+                        callback.onSuccess();
+                    }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error iniciando ruta", e);
-                    callback.onError(e.getMessage());
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Error iniciando ruta", e);
+                        callback.onError(e.getMessage());
+                    }
                 });
     }
 
+
     // Método para actualizar la ubicación del repartidor
 
-    public void actualizarUbicacionRepartidor(String pedidoId, double lat, double lng, UpdateCallback callback) {
+    public void actualizarUbicacionRepartidor(String pedidoId, double lat, double lng, final UpdateCallback callback) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("latitudRepartidor", lat);
         updates.put("longitudRepartidor", lng);
@@ -99,19 +119,29 @@ public class PedidoService {
 
         db.collection(COLLECTION_PEDIDOS).document(pedidoId)
                 .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    // Actualización exitosa (silenciosa, se ejecuta cada pocos segundos)
-                    if (callback != null) callback.onSuccess();
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        if (callback != null) {
+                            callback.onSuccess();
+                        }
+                    }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error actualizando ubicación", e);
-                    if (callback != null) callback.onError(e.getMessage());
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Error actualizando ubicación", e);
+                        if (callback != null) {
+                            callback.onError(e.getMessage());
+                        }
+                    }
                 });
     }
 
+
     // Método para cambiar el estado del pedido a entregado
 
-    public void marcarComoEntregado(String pedidoId, UpdateCallback callback) {
+    public void marcarComoEntregado(String pedidoId, final UpdateCallback callback) {
         Log.d(TAG, "✅ Marcando pedido como entregado: " + pedidoId);
 
         Map<String, Object> updates = new HashMap<>();
@@ -121,99 +151,129 @@ public class PedidoService {
 
         db.collection(COLLECTION_PEDIDOS).document(pedidoId)
                 .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Pedido marcado como entregado");
-                    callback.onSuccess();
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d(TAG, "Pedido marcado como entregado");
+                        callback.onSuccess();
+                    }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error marcando como entregado", e);
-                    callback.onError(e.getMessage());
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Error marcando como entregado", e);
+                        callback.onError(e.getMessage());
+                    }
                 });
     }
 
+
     // Escuchar el pedido en tiempo real
 
-    public ListenerRegistration escucharPedido(String pedidoId, PedidoRealtimeCallback callback) {
+    public ListenerRegistration escucharPedido(String pedidoId, final PedidoRealtimeCallback callback) {
         Log.d(TAG, "👂 Escuchando pedido en tiempo real: " + pedidoId);
 
         return db.collection(COLLECTION_PEDIDOS).document(pedidoId)
-                .addSnapshotListener((snapshot, error) -> {
-                    if (error != null) {
-                        Log.e(TAG, "❌ Error escuchando pedido", error);
-                        callback.onError(error.getMessage());
-                        return;
-                    }
+                .addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
 
-                    if (snapshot != null && snapshot.exists()) {
-                        Pedido pedido = snapshot.toObject(Pedido.class);
-                        if (pedido != null) {
-                            pedido.setId(snapshot.getId());
-                            callback.onPedidoChanged(pedido);
+                        if (error != null) {
+                            Log.e(TAG, "Error escuchando pedido", error);
+                            callback.onError(error.getMessage());
+                            return;
+                        }
+
+                        if (snapshot != null && snapshot.exists()) {
+                            Pedido pedido = snapshot.toObject(Pedido.class);
+                            if (pedido != null) {
+                                pedido.setId(snapshot.getId());
+                                callback.onPedidoChanged(pedido);
+                            }
                         }
                     }
                 });
     }
 
+
     // Método para obtenrer todos los pedidos
 
-    public void obtenerTodosPedidos(PedidosListCallback callback) {
+    public void obtenerTodosPedidos(final PedidosListCallback callback) {
         Log.d(TAG, "🔍 Obteniendo todos los pedidos");
 
         db.collection("pedidos")
                 .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    List<Pedido> pedidos = new ArrayList<>();
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot querySnapshot) {
+                        List<Pedido> pedidos = new ArrayList<>();
 
-                    for (QueryDocumentSnapshot document : querySnapshot) {
-                        // Datos del peddo
-                        Map<String, Object> data = document.getData();
-                        Log.d(TAG, "====================================");
-                        Log.d(TAG, "📄 ID Documento: " + document.getId());
-                        Log.d(TAG, "📋 TODOS los campos: " + data);
+                        for (QueryDocumentSnapshot document : querySnapshot) {
+                            // Datos del pedido
+                            Map<String, Object> data = document.getData();
+                            Log.d(TAG, "====================================");
+                            Log.d(TAG, "📄 ID Documento: " + document.getId());
+                            Log.d(TAG, "📋 TODOS los campos: " + data);
 
-                        // Verificar específicamente el código
-                        Object codigoValue = document.get("codigoPedido");
-                        Log.d(TAG, "🔍 Campo 'codigoPedido' existe: " + (codigoValue != null));
-                        Log.d(TAG, "🔍 Valor 'codigoPedido': " + codigoValue);
+                            // Verificar específicamente el código
+                            Object codigoValue = document.get("codigoPedido");
+                            Log.d(TAG, "🔍 Campo 'codigoPedido' existe: " + (codigoValue != null));
+                            Log.d(TAG, "🔍 Valor 'codigoPedido': " + codigoValue);
 
-                        // Mapear a objeto
-                        Pedido pedido = document.toObject(Pedido.class);
-                        pedido.setId(document.getId());
+                            // Mapear a objeto
+                            Pedido pedido = document.toObject(Pedido.class);
+                            pedido.setId(document.getId());
 
-                        Log.d(TAG, "✅ Después de mapear:");
-                        Log.d(TAG, "   ID: " + pedido.getId());
-                        Log.d(TAG, "   CodigoPedido: " + pedido.getcodigoPedido());
-                        Log.d(TAG, "   Cliente: " + pedido.getClienteNombre());
-                        Log.d(TAG, "====================================");
+                            Log.d(TAG, "✅ Después de mapear:");
+                            Log.d(TAG, "   ID: " + pedido.getId());
+                            Log.d(TAG, "   CodigoPedido: " + pedido.getcodigoPedido());
+                            Log.d(TAG, "   Cliente: " + pedido.getClienteNombre());
+                            Log.d(TAG, "====================================");
 
-                        pedidos.add(pedido);
+                            pedidos.add(pedido);
+                        }
+
+                        callback.onSuccess(pedidos);
                     }
-
-                    callback.onSuccess(pedidos);
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error: " + e.getMessage());
-                    callback.onError(e.getMessage());
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "❌ Error: " + e.getMessage());
+                        callback.onError(e.getMessage());
+                    }
                 });
     }
 
+
     //Método para obtener pedidos segun el repartidor asignado
-    public void obtenerPedidosPorRepartidor(String repartidorId, String estado, PedidosListCallback callback) {
+    public void obtenerPedidosPorRepartidor(String repartidorId, String estado, final PedidosListCallback callback) {
         db.collection(COLLECTION_PEDIDOS)
                 .whereEqualTo("repartidorId", repartidorId)
                 .whereEqualTo("estado", estado)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Pedido> pedidos = new ArrayList<>();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Pedido pedido = document.toObject(Pedido.class);
-                        pedido.setId(document.getId());
-                        pedidos.add(pedido);
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        List<Pedido> pedidos = new ArrayList<>();
+
+                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                            Pedido pedido = document.toObject(Pedido.class);
+                            pedido.setId(document.getId());
+                            pedidos.add(pedido);
+                        }
+
+                        callback.onSuccess(pedidos);
                     }
-                    callback.onSuccess(pedidos);
                 })
-                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        callback.onError(e.getMessage());
+                    }
+                });
     }
+
 
     //Método para escuchar todos los pedidos en tiempo real
     public void escucharPedidosTiempoReal() {
@@ -228,7 +288,7 @@ public class PedidoService {
 
                         if (snapshots != null) {
                             pedidoList.clear();
-                            for (var doc : snapshots.getDocuments()) {
+                            for (QueryDocumentSnapshot doc : snapshots) {
                                 Pedido pedido = doc.toObject(Pedido.class);
                                 pedidoList.add(pedido);
                             }
@@ -237,6 +297,7 @@ public class PedidoService {
                     }
                 });
     }
+
 
     // ========== UTILIDADES ==========
 

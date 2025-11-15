@@ -114,19 +114,34 @@ public class EmployeesAdapter extends RecyclerView.Adapter<EmployeesAdapter.Empl
                 chipType.setChipBackgroundColorResource(android.R.color.holo_green_light);
             }
 
-            // Botones
-            btnEdit.setOnClickListener(v -> {
-                EditEmployeeDialog dialog = EditEmployeeDialog.newInstance(employee);
-                dialog.setOnEmployeeUpdatedListener(() -> {
-                    if (listener != null) {
-                        listener.loadEmployees();
-                    }
-                });
-                dialog.show(((androidx.fragment.app.FragmentActivity) context).getSupportFragmentManager(), "EditEmployee");
+            // Botones sin lambda
+            btnEdit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    EditEmployeeDialog dialog = EditEmployeeDialog.newInstance(employee);
+
+                    dialog.setOnEmployeeUpdatedListener(new EditEmployeeDialog.OnEmployeeUpdatedListener() {
+                        @Override
+                        public void loadEmployees() {
+                            if (listener != null) {
+                                listener.loadEmployees();
+                            }
+                        }
+                    });
+
+                    dialog.show(((androidx.fragment.app.FragmentActivity) context)
+                            .getSupportFragmentManager(), "EditEmployee");
+                }
             });
 
-            btnDelete.setOnClickListener(v -> showDeleteConfirmation(employee));
+            btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showDeleteConfirmation(employee);
+                }
+            });
         }
+
 
         //Muestra un diálogo de confirmación antes de eliminar un empleado
         private void showDeleteConfirmation(User employee) {

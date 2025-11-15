@@ -1,8 +1,17 @@
 package com.helzitom.proyecto_ayedd.services;
 
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.helzitom.proyecto_ayedd.models.User;
@@ -59,20 +68,25 @@ public class AuthService {
         db.collection(COLLECTION_USERS)
                 .whereEqualTo("username", username)
                 .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot snapshot = task.getResult();
-                        callback.onResult(snapshot.isEmpty());
-                    } else {
-                        Exception e = task.getException();
-                        Log.e(TAG, "Error verificando username", e);
-                        callback.onResult(true);
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            QuerySnapshot snapshot = task.getResult();
+                            callback.onResult(snapshot.isEmpty());
+                        } else {
+                            Exception e = task.getException();
+                            Log.e(TAG, "Error verificando username", e);
+                            callback.onResult(true);
+                        }
                     }
                 });
     }
 
+
     // Verificar si hay sesión activa
     public boolean isUserLoggedIn() {
+
         return mAuth.getCurrentUser() != null;
     }
 
@@ -82,33 +96,44 @@ public class AuthService {
     public void registerUser(User user, String password, AuthCallback callback) {
         Log.d(TAG, "📝 Registrando usuario: " + user.getEmail());
 
-        // 1. Crear usuario en Firebase Authentication
         mAuth.createUserWithEmailAndPassword(user.getEmail(), password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String userId = mAuth.getCurrentUser().getUid();
-                        user.setUserId(userId);
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                            if (firebaseUser != null) {
 
-                        // 2. Enviar email de verificación
-                        mAuth.getCurrentUser().sendEmailVerification()
-                                .addOnCompleteListener(verifyTask -> {
-                                    // Continuar aunque falle el envío
-                                    saveUserToFirestore(user, callback);
-                                });
-                    } else {
-                        String error = task.getException() != null ?
-                                task.getException().getMessage() : "Error desconocido";
-                        Log.e(TAG, "❌ Error en registro: " + error);
-                        callback.onError(getErrorMessage(task.getException()));
+                                String userId = firebaseUser.getUid();
+                                user.setUserId(userId);
+
+                                // Enviar correo de verificación
+                                firebaseUser.sendEmailVerification()
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> verifyTask) {
+                                                // Continuar incluso si falla el envío del email
+                                                saveUserToFirestore(user, callback);
+                                            }
+                                        });
+                            }
+                        } else {
+                            Exception e = task.getException();
+                            String errorMessage = (e != null) ? e.getMessage() : "Error desconocido";
+                            Log.e(TAG, "Error en registro: " + errorMessage);
+                            callback.onError(getErrorMessage(e));
+                        }
                     }
                 });
     }
 
+
     // Guardar datos del usuario en Firestore
-    private void saveUserToFirestore(User user, AuthCallback callback) {
+    private void saveUserToFirestore(final User user, final AuthCallback callback) {
+
         Map<String, Object> userData = new HashMap<>();
         userData.put("userId", user.getUserId());
-        userData.put("uid", user.getUserId()); // Ambos por compatibilidad
+        userData.put("uid", user.getUserId()); // Compatibilidad
         userData.put("name", user.getName());
         userData.put("lastname", user.getLastname());
         userData.put("username", user.getUsername());
@@ -120,20 +145,28 @@ public class AuthService {
         db.collection(COLLECTION_USERS)
                 .document(user.getUserId())
                 .set(userData)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Usuario guardado en Firestore");
-                    callback.onSuccess(user.getUserId());
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "✅ Usuario guardado en Firestore");
+                        callback.onSuccess(user.getUserId());
+                    }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error al guardar datos", e);
-                    callback.onError("Error al guardar datos: " + e.getMessage());
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Error al guardar datos", e);
+                        callback.onError("Error al guardar datos: " + e.getMessage());
+                    }
                 });
     }
+
 
     // ========== LOGIN ==========
 
     // Login con email y contraseña (retorna tipo de usuario)
-    public void loginUsuario(String email, String password, LoginCallback callback) {
+    public void loginUsuario(String email, String password, final LoginCallback callback) {
+
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
             callback.onError("Email y contraseña son obligatorios");
             return;
@@ -142,31 +175,38 @@ public class AuthService {
         Log.d(TAG, "Iniciando sesión: " + email);
 
         mAuth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener(authResult -> {
-                    FirebaseUser firebaseUser = authResult.getUser();
-                    if (firebaseUser != null) {
-                        String uid = firebaseUser.getUid();
+                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                    @Override
+                    public void onSuccess(AuthResult authResult) {
+                        FirebaseUser firebaseUser = authResult.getUser();
+                        if (firebaseUser != null) {
+                            final String uid = firebaseUser.getUid();
 
-                        // Obtener tipo de usuario desde Firestore
-                        obtenerTipoUsuario(uid, new UserService.TipoUsuarioCallback() {
-                            @Override
-                            public void onSuccess(String tipo) {
-                                Log.d(TAG, "Login exitoso - Tipo: " + tipo);
-                                callback.onSuccess(uid, email, tipo);
-                            }
+                            // Obtener tipo de usuario desde Firestore
+                            obtenerTipoUsuario(uid, new UserService.TipoUsuarioCallback() {
+                                @Override
+                                public void onSuccess(String tipo) {
+                                    Log.d(TAG, "Login exitoso - Tipo: " + tipo);
+                                    callback.onSuccess(uid, email, tipo);
+                                }
 
-                            @Override
-                            public void onError(String error) {
-                                callback.onError(error);
-                            }
-                        });
+                                @Override
+                                public void onError(String error) {
+                                    callback.onError(error);
+                                }
+                            });
+                        }
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error en inicio de sesión", e);
-                    callback.onError(getErrorMessage(e));
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Error en inicio de sesión", e);
+                        callback.onError(getErrorMessage(e));
+                    }
                 });
     }
+
 
     // Obtener tipo del usuario actual
     public void obtenerTipoUsuarioActual(UserService.TipoUsuarioCallback callback) {
@@ -179,37 +219,45 @@ public class AuthService {
     }
 
     // Obtener tipo de usuario por UID
-    private void obtenerTipoUsuario(String uid, UserService.TipoUsuarioCallback callback) {
+    private void obtenerTipoUsuario(String uid, final UserService.TipoUsuarioCallback callback) {
         Log.d(TAG, "🔍 Obteniendo tipo de usuario: " + uid);
 
         db.collection(COLLECTION_USERS)
                 .document(uid)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String type = documentSnapshot.getString("type");
-                        if (type != null) {
-                            Log.d(TAG, "✅ Tipo de usuario: " + type);
-                            callback.onSuccess(type);
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()) {
+                            String type = documentSnapshot.getString("type");
+                            if (type != null) {
+                                Log.d(TAG, "Tipo de usuario: " + type);
+                                callback.onSuccess(type);
+                            } else {
+                                callback.onError("Tipo de usuario no definido");
+                            }
                         } else {
-                            callback.onError("Tipo de usuario no definido");
+                            Log.w(TAG, "⚠️ Usuario no encontrado en base de datos");
+                            callback.onError("Usuario no encontrado");
                         }
-                    } else {
-                        Log.w(TAG, "⚠️ Usuario no encontrado en base de datos");
-                        callback.onError("Usuario no encontrado");
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error obteniendo tipo de usuario", e);
-                    callback.onError("Error al obtener información del usuario");
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Error obteniendo tipo de usuario", e);
+                        callback.onError("Error al obtener información del usuario");
+                    }
                 });
     }
+
 
 
     // ========== UTILIDADES ==========
 
     // Obtener usuario actual
     public FirebaseUser getCurrentUser() {
+
         return mAuth.getCurrentUser();
     }
 

@@ -64,9 +64,22 @@ public class AddEmployeeDialog extends DialogFragment {
     }
 
     private void setupListeners() {
-        btnCancel.setOnClickListener(v -> dismiss());
-        btnSave.setOnClickListener(v -> saveEmployee());
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
+
+        btnSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveEmployee();
+            }
+        });
     }
+
 
     private void saveEmployee() {
         String name = etName.getText().toString().trim();

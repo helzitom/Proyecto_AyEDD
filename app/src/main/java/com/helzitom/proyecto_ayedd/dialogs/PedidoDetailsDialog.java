@@ -125,12 +125,26 @@ public class PedidoDetailsDialog extends DialogFragment {
     }
 
     private void setupListeners() {
-        btnClose.setOnClickListener(v -> dismiss());
-        btnVerMapa.setOnClickListener(v -> {
-            // TODO: Implementar vista de mapa
-            android.widget.Toast.makeText(requireContext(), "Mapa próximamente", android.widget.Toast.LENGTH_SHORT).show();
+
+        btnClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
+
+        btnVerMapa.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.widget.Toast.makeText(
+                        requireContext(),
+                        "Mapa próximamente",
+                        android.widget.Toast.LENGTH_SHORT
+                ).show();
+            }
         });
     }
+
 
     //Método para obtener el estado del pedido
     private String getEstadoText(String estado) {

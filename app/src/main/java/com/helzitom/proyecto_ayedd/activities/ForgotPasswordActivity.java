@@ -8,7 +8,12 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.helzitom.proyecto_ayedd.R;
 
@@ -43,9 +48,21 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        btnEnviarEmail.setOnClickListener(v -> enviarEmailRecuperacion());
-        tvVolverLogin.setOnClickListener(v -> finish());
+        btnEnviarEmail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                enviarEmailRecuperacion();
+            }
+        });
+
+        tvVolverLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
+
 
     private void enviarEmailRecuperacion() {
         String email = etEmail.getText().toString().trim();
@@ -69,24 +86,29 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
         // Enviar email de recuperación
         mAuth.sendPasswordResetEmail(email)
-                .addOnCompleteListener(task -> {
-                    progressBar.setVisibility(View.GONE);
-                    btnEnviarEmail.setEnabled(true);
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        progressBar.setVisibility(View.GONE);
+                        btnEnviarEmail.setEnabled(true);
 
-                    if (task.isSuccessful()) {
-                        Toast.makeText(ForgotPasswordActivity.this,
-                                "✅ Se ha enviado un correo de recuperación a " + email,
-                                Toast.LENGTH_LONG).show();
-                        finish(); // Volver al login
-                    } else {
-                        String errorMsg = "Error al enviar el correo";
-                        if (task.getException() != null) {
-                            errorMsg = obtenerMensajeError(task.getException().getMessage());
+                        if (task.isSuccessful()) {
+                            Toast.makeText(ForgotPasswordActivity.this,
+                                    "✅ Se ha enviado un correo de recuperación a " + email,
+                                    Toast.LENGTH_LONG).show();
+                            finish(); // Volver al login
+                        } else {
+                            String errorMsg = "Error al enviar el correo";
+                            if (task.getException() != null) {
+                                errorMsg = obtenerMensajeError(task.getException().getMessage());
+                            }
+                            Toast.makeText(ForgotPasswordActivity.this,
+                                    errorMsg, Toast.LENGTH_LONG).show();
                         }
-                        Toast.makeText(ForgotPasswordActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
     }
+
 
     private String obtenerMensajeError(String error) {
         if (error == null) return "Error desconocido";

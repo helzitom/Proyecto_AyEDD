@@ -11,14 +11,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.models.User;
@@ -89,39 +96,55 @@ public class MainActivity extends AppCompatActivity {
         btnLogin.setEnabled(false);
 
         auth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    // Ocultar barra y reactivar botón
-                    progressBar.setVisibility(View.GONE);
-                    btnLogin.setEnabled(true);
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
 
-                    if (task.isSuccessful()) {
-                        FirebaseUser firebaseUser = auth.getCurrentUser();
-                        if (firebaseUser != null) {
-                            fetchUserTypeAndRedirect(firebaseUser.getUid());
+                        // Ocultar barra y reactivar botón
+                        progressBar.setVisibility(View.GONE);
+                        btnLogin.setEnabled(true);
+
+                        if (task.isSuccessful()) {
+                            FirebaseUser firebaseUser = auth.getCurrentUser();
+                            if (firebaseUser != null) {
+                                fetchUserTypeAndRedirect(firebaseUser.getUid());
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show();
                         }
-                    } else {
-                        Toast.makeText(this, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
+
 
     private void fetchUserTypeAndRedirect(String userId) {
         db.collection("users").document(userId)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        User user = documentSnapshot.toObject(User.class);
-                        if (user != null) {
-                            redirectToActivity(user.getType());
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()) {
+                            User user = documentSnapshot.toObject(User.class);
+                            if (user != null) {
+                                redirectToActivity(user.getType());
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this,
+                                    "Usuario no encontrado en la base de datos",
+                                    Toast.LENGTH_SHORT).show();
                         }
-                    } else {
-                        Toast.makeText(this, "Usuario no encontrado en la base de datos", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al obtener datos del usuario", Toast.LENGTH_SHORT).show();
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this,
+                                "Error al obtener datos del usuario",
+                                Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
+
 
     private void redirectToActivity(String userType) {
         Intent intent;

@@ -1,5 +1,6 @@
 package com.helzitom.proyecto_ayedd.activities;
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -31,7 +33,10 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.models.Pedido;
@@ -124,27 +129,34 @@ public class DeliveryRouteActivity extends AppCompatActivity implements OnMapRea
 
     private void enableMyLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
             mMap.setMyLocationEnabled(true);
 
             // Obtener ubicación actual
             fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(location -> {
-                        if (location != null) {
-                            LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                            markerRepartidor = mMap.addMarker(new MarkerOptions()
-                                    .position(currentLocation)
-                                    .title("Tu ubicación")
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    .addOnSuccessListener(new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            if (location != null) {
+                                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
-                            // Ajustar cámara para mostrar ambos puntos
-                            LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
-                            boundsBuilder.include(currentLocation);
-                            boundsBuilder.include(new LatLng(pedido.getLatitudDestino(), pedido.getLongitudDestino()));
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 100));
+                                markerRepartidor = mMap.addMarker(new MarkerOptions()
+                                        .position(currentLocation)
+                                        .title("Tu ubicación")
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+                                // Ajustar cámara para mostrar ambos puntos
+                                LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+                                boundsBuilder.include(currentLocation);
+                                boundsBuilder.include(new LatLng(pedido.getLatitudDestino(), pedido.getLongitudDestino()));
+
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 100));
+                            }
                         }
                     });
         }
     }
+
 
     private void setupLocationCallback() {
         locationCallback = new LocationCallback() {
@@ -196,9 +208,21 @@ public class DeliveryRouteActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void setupListeners() {
-        btnIniciarRuta.setOnClickListener(v -> iniciarRuta());
-        btnMarcarEntregado.setOnClickListener(v -> mostrarDialogoVerificacion());
+        btnIniciarRuta.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                iniciarRuta();
+            }
+        });
+
+        btnMarcarEntregado.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mostrarDialogoVerificacion();
+            }
+        });
     }
+
 
     private void updateUI() {
         tvClienteNombre.setText("Cliente: " + pedido.getClienteNombre());
@@ -207,39 +231,50 @@ public class DeliveryRouteActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void iniciarRuta() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Se requieren permisos de ubicación", Toast.LENGTH_SHORT).show();
             return;
         }
 
         fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(location -> {
-                    if (location != null) {
-                        pedidoService.iniciarRuta(pedido.getId(),
-                                location.getLatitude(),
-                                location.getLongitude(),
-                                new PedidoService.UpdateCallback() {
-                                    @Override
-                                    public void onSuccess() {
-                                        Log.d(TAG, "✅ Ruta iniciada");
-                                        rutaIniciada = true;
-                                        btnIniciarRuta.setEnabled(false);
-                                        btnIniciarRuta.setText("Ruta en Progreso");
-                                        btnMarcarEntregado.setEnabled(true);
-                                        tvEstadoRuta.setText("Estado: En Camino 🚚");
-                                        startLocationUpdates();
-                                    }
+                .addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        if (location != null) {
+                            pedidoService.iniciarRuta(
+                                    pedido.getId(),
+                                    location.getLatitude(),
+                                    location.getLongitude(),
+                                    new PedidoService.UpdateCallback() {
+                                        @Override
+                                        public void onSuccess() {
+                                            Log.d(TAG, "Ruta iniciada");
+                                            rutaIniciada = true;
+                                            btnIniciarRuta.setEnabled(false);
+                                            btnIniciarRuta.setText("Ruta en Progreso");
+                                            btnMarcarEntregado.setEnabled(true);
+                                            tvEstadoRuta.setText("Estado: En Camino 🚚");
+                                            startLocationUpdates();
+                                        }
 
-                                    @Override
-                                    public void onError(String error) {
-                                        Toast.makeText(DeliveryRouteActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+                                        @Override
+                                        public void onError(String error) {
+                                            Toast.makeText(DeliveryRouteActivity.this,
+                                                    "Error: " + error,
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
                                     }
-                                });
-                    } else {
-                        Toast.makeText(DeliveryRouteActivity.this, "No se pudo obtener tu ubicación", Toast.LENGTH_SHORT).show();
+                            );
+                        } else {
+                            Toast.makeText(DeliveryRouteActivity.this,
+                                    "No se pudo obtener tu ubicación",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
     }
+
 
     private void startLocationUpdates() {
         LocationRequest locationRequest = LocationRequest.create();
@@ -258,30 +293,46 @@ public class DeliveryRouteActivity extends AppCompatActivity implements OnMapRea
         inputCodigo.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
         inputCodigo.setPadding(50, 40, 50, 40);
 
-        new AlertDialog.Builder(this)
-                .setTitle("Verificar Entrega")
-                .setMessage("Solicite al cliente el código de verificación del pedido:")
-                .setView(inputCodigo)
-                .setPositiveButton("Verificar", (dialog, which) -> {
-                    String codigoIngresado = inputCodigo.getText().toString().trim();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Verificar Entrega");
+        builder.setMessage("Solicite al cliente el código de verificación del pedido:");
+        builder.setView(inputCodigo);
 
-                    if (codigoIngresado.isEmpty()) {
-                        Toast.makeText(this, "Por favor ingrese el código", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+        builder.setPositiveButton("Verificar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String codigoIngresado = inputCodigo.getText().toString().trim();
 
-                    verificarYMarcarEntregado(codigoIngresado);
-                })
-                .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
-                .show();
+                if (codigoIngresado.isEmpty()) {
+                    Toast.makeText(DeliveryRouteActivity.this,
+                            "Por favor ingrese el código",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                verificarYMarcarEntregado(codigoIngresado);
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.show();
     }
+
 
     private void verificarYMarcarEntregado(String codigoIngresado) {
         btnMarcarEntregado.setEnabled(false);
         btnMarcarEntregado.setText("Verificando...");
 
         if (pedido == null || pedido.getId() == null) {
-            Toast.makeText(this, "Error: No se encontró el ID del pedido", Toast.LENGTH_SHORT).show();
+            Toast.makeText(DeliveryRouteActivity.this,
+                    "Error: No se encontró el ID del pedido",
+                    Toast.LENGTH_SHORT).show();
             btnMarcarEntregado.setEnabled(true);
             btnMarcarEntregado.setText("Marcar como Entregado");
             return;
@@ -290,58 +341,80 @@ public class DeliveryRouteActivity extends AppCompatActivity implements OnMapRea
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference pedidoRef = db.collection("pedidos").document(pedido.getId());
 
-        pedidoRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                String codigoVerificacionFirebase = documentSnapshot.getString("codigoVerificacion");
-
-                if (codigoVerificacionFirebase == null || codigoVerificacionFirebase.isEmpty()) {
-                    Toast.makeText(this, "Error: Este pedido no tiene código de verificación", Toast.LENGTH_SHORT).show();
-                    btnMarcarEntregado.setEnabled(true);
-                    btnMarcarEntregado.setText("Marcar como Entregado");
-                    return;
-                }
-
-                if (!codigoIngresado.equals(codigoVerificacionFirebase)) {
-                    Toast.makeText(this, "❌ Código incorrecto. Intente nuevamente", Toast.LENGTH_LONG).show();
-                    btnMarcarEntregado.setEnabled(true);
-                    btnMarcarEntregado.setText("Marcar como Entregado");
-                    return;
-                }
-
-                // Si el código es correcto, marcamos como entregado
-                pedidoService.marcarComoEntregado(pedido.getId(), new PedidoService.UpdateCallback() {
+        pedidoRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
-                    public void onSuccess() {
-                        Toast.makeText(DeliveryRouteActivity.this, "✅ Pedido entregado correctamente", Toast.LENGTH_SHORT).show();
-                        stopLocationUpdates();
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                        // 🔹 Redirigir a la pantalla principal de repartidor
-                        Intent intent = new Intent(DeliveryRouteActivity.this, DeliveryActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
+                        if (documentSnapshot.exists()) {
+                            String codigoVerificacionFirebase = documentSnapshot.getString("codigoVerificacion");
 
-                        finish(); // Cierra la pantalla actual
+                            if (codigoVerificacionFirebase == null || codigoVerificacionFirebase.isEmpty()) {
+                                Toast.makeText(DeliveryRouteActivity.this,
+                                        "Error: Este pedido no tiene código de verificación",
+                                        Toast.LENGTH_SHORT).show();
+                                btnMarcarEntregado.setEnabled(true);
+                                btnMarcarEntregado.setText("Marcar como Entregado");
+                                return;
+                            }
+
+                            if (!codigoIngresado.equals(codigoVerificacionFirebase)) {
+                                Toast.makeText(DeliveryRouteActivity.this,
+                                        "Código incorrecto. Intente nuevamente",
+                                        Toast.LENGTH_LONG).show();
+                                btnMarcarEntregado.setEnabled(true);
+                                btnMarcarEntregado.setText("Marcar como Entregado");
+                                return;
+                            }
+
+                            // Código correcto → marcar como entregado
+                            pedidoService.marcarComoEntregado(pedido.getId(),
+                                    new PedidoService.UpdateCallback() {
+                                        @Override
+                                        public void onSuccess() {
+                                            Toast.makeText(DeliveryRouteActivity.this,
+                                                    "✅ Pedido entregado correctamente",
+                                                    Toast.LENGTH_SHORT).show();
+
+                                            stopLocationUpdates();
+
+                                            Intent intent = new Intent(DeliveryRouteActivity.this, DeliveryActivity.class);
+                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+
+                                        @Override
+                                        public void onError(String error) {
+                                            Toast.makeText(DeliveryRouteActivity.this,
+                                                    "Error: " + error,
+                                                    Toast.LENGTH_SHORT).show();
+                                            btnMarcarEntregado.setEnabled(true);
+                                            btnMarcarEntregado.setText("Marcar como Entregado");
+                                        }
+                                    });
+
+                        } else {
+                            Toast.makeText(DeliveryRouteActivity.this,
+                                    "Error: Pedido no encontrado en Firebase",
+                                    Toast.LENGTH_SHORT).show();
+                            btnMarcarEntregado.setEnabled(true);
+                            btnMarcarEntregado.setText("Marcar como Entregado");
+                        }
                     }
-
+                })
+                .addOnFailureListener(new OnFailureListener() {
                     @Override
-                    public void onError(String error) {
-                        Toast.makeText(DeliveryRouteActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(DeliveryRouteActivity.this,
+                                "Error al obtener el pedido: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
                         btnMarcarEntregado.setEnabled(true);
                         btnMarcarEntregado.setText("Marcar como Entregado");
                     }
                 });
-
-            } else {
-                Toast.makeText(this, "Error: Pedido no encontrado en Firebase", Toast.LENGTH_SHORT).show();
-                btnMarcarEntregado.setEnabled(true);
-                btnMarcarEntregado.setText("Marcar como Entregado");
-            }
-        }).addOnFailureListener(e -> {
-            Toast.makeText(this, "Error al obtener el pedido: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            btnMarcarEntregado.setEnabled(true);
-            btnMarcarEntregado.setText("Marcar como Entregado");
-        });
     }
+
 
 
 

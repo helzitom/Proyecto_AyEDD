@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.helzitom.proyecto_ayedd.R;
 import com.helzitom.proyecto_ayedd.adapters.DeliveryPedidosAdapter;
 import com.helzitom.proyecto_ayedd.models.Pedido;
@@ -152,7 +151,7 @@ public class DeliveryActivity extends AppCompatActivity {
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "❌ Error: " + error);
+                Log.e(TAG, "Error: " + error);
                 Toast.makeText(DeliveryActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
                 showEmpty(true);
                 swipeRefresh.setRefreshing(false);
@@ -166,14 +165,14 @@ public class DeliveryActivity extends AppCompatActivity {
                 new PedidoService.PedidosListCallback() {
                     @Override
                     public void onSuccess(List<Pedido> pedidos) {
-                        Log.d(TAG, "✅ Mis pedidos asignados: " + pedidos.size());
+                        Log.d(TAG, "Mis pedidos asignados: " + pedidos.size());
                         updateUI(pedidos);
                         swipeRefresh.setRefreshing(false);
                     }
 
                     @Override
                     public void onError(String error) {
-                        Log.e(TAG, "❌ Error: " + error);
+                        Log.e(TAG, "Error: " + error);
                         showEmpty(true);
                         swipeRefresh.setRefreshing(false);
                     }
